@@ -57,9 +57,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         "pc-sidebar",
         isSidebarOpen ? "open" : ""
       )}>
-        <div className="h-16 flex items-center px-6 border-b border-white/5 bg-[#333f54]">
+        <div className="h-16 flex items-center px-6 border-b border-white/5">
           <h1 className="text-xl font-black tracking-tighter text-white flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
               <Package className="w-5 h-5 text-white" />
             </div>
             <span>GKL<span className="text-primary">.co</span></span>

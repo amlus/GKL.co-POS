@@ -108,10 +108,10 @@ const Reports: React.FC = () => {
   }, []).sort((a: any, b: any) => b.sales - a.sales).slice(0, 10);
 
   const stats = [
-    { name: 'Total Pendapatan', value: `Rp ${totalSales.toLocaleString()}`, icon: TrendingUp, color: 'text-white', bg: 'bg-primary' },
-    { name: 'Total Laba', value: `Rp ${totalProfit.toLocaleString()}`, icon: TrendingUp, color: 'text-white', bg: 'bg-success' },
-    { name: 'Total Item Terjual', value: totalItems, icon: ShoppingBag, color: 'text-white', bg: 'bg-info' },
-    { name: 'Total Transaksi', value: transactions.length, icon: Calendar, color: 'text-white', bg: 'bg-warning' },
+    { name: 'Total Pendapatan', value: `Rp ${totalSales.toLocaleString()}`, icon: TrendingUp, color: 'text-white', bg: 'bg-gradient-to-br from-primary to-secondary' },
+    { name: 'Total Laba', value: `Rp ${totalProfit.toLocaleString()}`, icon: TrendingUp, color: 'text-white', bg: 'bg-gradient-to-br from-success to-[#00d285]' },
+    { name: 'Total Item Terjual', value: totalItems, icon: ShoppingBag, color: 'text-white', bg: 'bg-gradient-to-br from-info to-[#00e5ff]' },
+    { name: 'Total Transaksi', value: transactions.length, icon: Calendar, color: 'text-white', bg: 'bg-gradient-to-br from-warning to-[#ffcb2b]' },
   ];
 
   const exportToCSV = () => {

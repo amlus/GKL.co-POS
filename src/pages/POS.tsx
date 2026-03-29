@@ -636,7 +636,7 @@ const POS: React.FC = () => {
               <button
                 disabled={cart.length === 0 || isCheckingOut}
                 onClick={handleCheckout}
-                className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                className="w-full bg-gradient-to-r from-primary to-secondary text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-primary/20 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
               >
                 {isCheckingOut ? (
                   <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -663,7 +663,7 @@ const POS: React.FC = () => {
           >
             <button
               onClick={() => setShowCartMobile(true)}
-              className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-2xl shadow-primary/40 flex items-center justify-between px-6 active:scale-95 transition-transform"
+              className="w-full bg-gradient-to-r from-primary to-secondary text-white py-4 rounded-2xl font-bold shadow-2xl shadow-primary/40 flex items-center justify-between px-6 active:scale-95 transition-transform"
             >
               <div className="flex items-center gap-3">
                 <div className="relative">

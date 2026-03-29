@@ -42,10 +42,10 @@ const Dashboard: React.FC = () => {
   const lowStockProductsCount = products.filter(p => p.stock < 10).length;
 
   const stats = [
-    { name: 'Total Penjualan Hari Ini', value: `Rp ${totalSalesToday.toLocaleString()}`, icon: TrendingUp, color: 'text-white', bg: 'bg-primary' },
-    { name: 'Transaksi Hari Ini', value: totalTransactionsToday, icon: ShoppingBag, color: 'text-white', bg: 'bg-success' },
-    { name: 'Stok Menipis (<10)', value: lowStockProductsCount, icon: Package, color: 'text-white', bg: 'bg-warning' },
-    { name: 'Total Produk', value: products.length, icon: Users, color: 'text-white', bg: 'bg-info' },
+    { name: 'Total Penjualan Hari Ini', value: `Rp ${totalSalesToday.toLocaleString()}`, icon: TrendingUp, color: 'text-white', bg: 'bg-gradient-to-br from-primary to-secondary' },
+    { name: 'Transaksi Hari Ini', value: totalTransactionsToday, icon: ShoppingBag, color: 'text-white', bg: 'bg-gradient-to-br from-success to-[#00d285]' },
+    { name: 'Stok Menipis (<10)', value: lowStockProductsCount, icon: Package, color: 'text-white', bg: 'bg-gradient-to-br from-warning to-[#ffcb2b]' },
+    { name: 'Total Produk', value: products.length, icon: Users, color: 'text-white', bg: 'bg-gradient-to-br from-info to-[#00e5ff]' },
   ];
 
   // Mock data for chart (in real app, fetch last 7 days)
