@@ -22,7 +22,14 @@ const Stock: React.FC = () => {
 
   useEffect(() => {
     const unsubscribeProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      const data = snapshot.docs.map(doc => {
+        const d = doc.data();
+        return { 
+          id: doc.id, 
+          ...d,
+          stock: d.stock || 0
+        } as Product;
+      });
       setProducts(data);
     });
 
@@ -80,8 +87,8 @@ const Stock: React.FC = () => {
     <div className="space-y-8">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Manajemen Stok</h1>
-          <p className="text-gray-500 mt-1 text-sm lg:text-base">Pantau tingkat inventaris dan sesuaikan stok secara manual.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Manajemen Stok</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm lg:text-base">Pantau tingkat inventaris dan sesuaikan stok secara manual.</p>
         </div>
       </header>
 
@@ -93,7 +100,7 @@ const Stock: React.FC = () => {
             <input
               type="text"
               placeholder="Cari produk..."
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-sm"
+              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-dark border border-gray-100 dark:border-white/5 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-sm text-gray-900 dark:text-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -104,32 +111,32 @@ const Stock: React.FC = () => {
               <div className="inline-block min-w-full align-middle">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 border-b border-gray-100">
-                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Produk</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Stok Saat Ini</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
-                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Aksi</th>
+                    <tr className="bg-gray-50/50 dark:bg-dark/50 border-b border-gray-100 dark:border-white/5">
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Produk</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Stok Saat Ini</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-gray-50 dark:divide-white/5">
                     {filteredProducts.map((product) => (
-                      <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <tr key={product.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-dark/50 flex items-center justify-center flex-shrink-0">
                               {product.imageUrl ? (
                                 <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-lg" referrerPolicy="no-referrer" />
                               ) : (
-                                <Package className="w-5 h-5 text-gray-300" />
+                                <Package className="w-5 h-5 text-gray-300 dark:text-gray-700" />
                               )}
                             </div>
                             <div>
-                              <p className="font-bold text-gray-900 text-sm">{product.name}</p>
-                              <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{product.category || 'Umum'}</p>
+                              <p className="font-bold text-gray-900 dark:text-white text-sm">{product.name}</p>
+                              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">{product.category || 'Umum'}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
+                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white whitespace-nowrap">
                           {product.stock}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -164,14 +171,14 @@ const Stock: React.FC = () => {
           <div className="card">
             <div className="card-header">
               <div className="flex items-center gap-2">
-                <History className="w-4 h-4 text-gray-400" />
-                <h2 className="text-lg font-bold text-gray-900">Log Stok Terbaru</h2>
+                <History className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Log Stok Terbaru</h2>
               </div>
             </div>
             <div className="card-body">
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                 {stockLogs.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-100">
+                  <div key={log.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-gray-100 dark:hover:border-white/10">
                     <div className={cn(
                       "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
                       log.type === 'sale' ? "bg-danger/10 text-danger" :
@@ -181,20 +188,20 @@ const Stock: React.FC = () => {
                       {log.changeAmount > 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">{log.productName}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{log.productName}</p>
                       <div className="flex items-center justify-between mt-1">
-                        <p className="text-[11px] text-gray-500 font-medium">
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
                           {log.changeAmount > 0 ? '+' : ''}{log.changeAmount} unit • {log.type}
                         </p>
-                        <p className="text-[10px] text-gray-400 font-bold">{format(log.timestamp.toDate(), 'HH:mm')}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold">{format(log.timestamp.toDate(), 'HH:mm')}</p>
                       </div>
                     </div>
                   </div>
                 ))}
                 {stockLogs.length === 0 && (
                   <div className="text-center py-12">
-                    <RefreshCw className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                    <p className="text-gray-400 text-sm">Belum ada log stok.</p>
+                    <RefreshCw className="w-12 h-12 text-gray-200 dark:text-gray-800 mx-auto mb-3" />
+                    <p className="text-gray-400 dark:text-gray-600 text-sm">Belum ada log stok.</p>
                   </div>
                 )}
               </div>
@@ -206,27 +213,27 @@ const Stock: React.FC = () => {
       {/* Adjustment Modal */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h2 className="text-lg font-bold text-gray-900">Sesuaikan Stok</h2>
-              <button onClick={() => setSelectedProduct(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+          <div className="bg-white dark:bg-dark w-full max-w-md rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-dark/50">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Sesuaikan Stok</h2>
+              <button onClick={() => setSelectedProduct(null)} className="p-2 hover:bg-gray-200 dark:hover:bg-dark rounded-full transition-colors text-gray-900 dark:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-8 space-y-6">
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
-                <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+              <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-dark/50 rounded-lg border border-gray-100 dark:border-white/5">
+                <div className="w-12 h-12 rounded-lg bg-white dark:bg-dark flex items-center justify-center shadow-sm">
                   {selectedProduct.imageUrl ? (
                     <img src={selectedProduct.imageUrl} alt={selectedProduct.name} className="w-full h-full object-cover rounded-lg" referrerPolicy="no-referrer" />
                   ) : (
-                    <Package className="w-6 h-6 text-gray-300" />
+                    <Package className="w-6 h-6 text-gray-300 dark:text-gray-700" />
                   )}
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Produk</p>
-                  <p className="font-bold text-gray-900">{selectedProduct.name}</p>
-                  <p className="text-xs text-gray-500 font-medium">Stok Saat Ini: {selectedProduct.stock}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">Produk</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{selectedProduct.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Stok Saat Ini: {selectedProduct.stock}</p>
                 </div>
               </div>
 
@@ -236,7 +243,7 @@ const Stock: React.FC = () => {
                     onClick={() => setAdjustmentType('restock')}
                     className={cn(
                       "py-3 rounded-lg font-bold text-xs uppercase tracking-wider transition-all border",
-                      adjustmentType === 'restock' ? "bg-success border-success text-white shadow-lg shadow-success/20" : "bg-white border-gray-100 text-gray-500"
+                      adjustmentType === 'restock' ? "bg-success border-success text-white shadow-lg shadow-success/20" : "bg-white dark:bg-dark border-gray-100 dark:border-white/5 text-gray-500 dark:text-gray-400"
                     )}
                   >
                     Restok (+)
@@ -245,7 +252,7 @@ const Stock: React.FC = () => {
                     onClick={() => setAdjustmentType('adjustment')}
                     className={cn(
                       "py-3 rounded-lg font-bold text-xs uppercase tracking-wider transition-all border",
-                      adjustmentType === 'adjustment' ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-white border-gray-100 text-gray-500"
+                      adjustmentType === 'adjustment' ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-white dark:bg-dark border-gray-100 dark:border-white/5 text-gray-500 dark:text-gray-400"
                     )}
                   >
                     Penyesuaian (+/-)
@@ -253,40 +260,40 @@ const Stock: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Jumlah Perubahan</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Jumlah Perubahan</label>
                   <div className="flex items-center gap-4">
                     <button 
                       onClick={() => setAdjustmentAmount(prev => prev - 1)}
-                      className="p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="p-3 bg-gray-100 dark:bg-dark/50 rounded-lg hover:bg-gray-200 dark:hover:bg-dark transition-colors text-gray-900 dark:text-white"
                     >
                       <Minus className="w-5 h-5" />
                     </button>
                     <input
                       type="number"
-                      className="flex-1 text-center py-3 bg-gray-50 border border-gray-100 rounded-lg text-2xl font-black outline-none focus:ring-2 focus:ring-primary/20"
+                      className="flex-1 text-center py-3 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-2xl font-black outline-none focus:ring-2 focus:ring-primary/20 text-gray-900 dark:text-white"
                       value={adjustmentAmount}
                       onChange={(e) => setAdjustmentAmount(Number(e.target.value))}
                     />
                     <button 
                       onClick={() => setAdjustmentAmount(prev => prev + 1)}
-                      className="p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="p-3 bg-gray-100 dark:bg-dark/50 rounded-lg hover:bg-gray-200 dark:hover:bg-dark transition-colors text-gray-900 dark:text-white"
                     >
                       <Plus className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-lg flex justify-between items-center border border-gray-100">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Level Stok Baru</span>
-                  <span className="text-2xl font-black text-gray-900">{selectedProduct.stock + adjustmentAmount}</span>
+                <div className="p-4 bg-gray-50 dark:bg-dark/50 rounded-lg flex justify-between items-center border border-gray-100 dark:border-white/5">
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Level Stok Baru</span>
+                  <span className="text-2xl font-black text-gray-900 dark:text-white">{selectedProduct.stock + adjustmentAmount}</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 bg-gray-50 flex gap-3">
+            <div className="p-6 bg-gray-50 dark:bg-dark/50 flex gap-3">
               <button 
                 onClick={() => setSelectedProduct(null)}
-                className="flex-1 bg-white border border-gray-200 py-3 rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 bg-white dark:bg-dark border border-gray-200 dark:border-white/10 py-3 rounded-lg font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark/50 transition-colors"
               >
                 Batal
               </button>

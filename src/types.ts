@@ -1,13 +1,18 @@
 import { Timestamp } from './firebase';
 
-export type UserRole = 'admin' | 'cashier';
+export type UserRole = 'admin' | 'cashier' | 'member';
+
+export type MembershipTier = 'none' | 'silver' | 'gold' | 'platinum';
 
 export interface UserProfile {
   uid: string;
   name: string;
   email: string;
   role: UserRole;
+  membershipTier?: MembershipTier;
+  monthlySpending?: number;
   createdAt: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface Product {
@@ -43,6 +48,7 @@ export interface Transaction {
   items: TransactionItem[];
   totalAmount: number;
   discount: number;
+  memberDiscount?: number;
   finalAmount: number;
   paymentMethod: PaymentMethod;
   cashierId: string;

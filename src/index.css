@@ -14,12 +14,20 @@
 
 @layer base {
   body {
-    @apply bg-background text-gray-700 font-sans;
+    @apply bg-background text-gray-700 font-sans transition-colors duration-300;
+  }
+
+  .dark body {
+    @apply bg-[#1a1c23] text-gray-300;
   }
 }
 
 .pc-sidebar {
   @apply bg-[#3f4d67] text-white w-64 fixed h-full transition-all duration-300 z-50 shadow-xl;
+}
+
+.dark .pc-sidebar {
+  @apply bg-[#111317];
 }
 
 @media (max-width: 1024px) {
@@ -45,23 +53,23 @@
 }
 
 .pc-header {
-  @apply bg-white h-16 fixed right-0 top-0 left-0 lg:left-64 flex items-center px-4 lg:px-6 shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] z-40 transition-all duration-300;
+  @apply bg-white dark:bg-[#1a1c23] h-16 fixed right-0 top-0 left-0 lg:left-64 flex items-center px-4 lg:px-6 shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] z-40 transition-all duration-300 border-b border-gray-100 dark:border-white/5;
 }
 
 .pc-container {
-  @apply pt-20 pl-0 lg:pl-64 transition-all duration-300 min-h-screen bg-[#f4f7fa];
+  @apply pt-20 pl-0 lg:pl-64 transition-all duration-300 min-h-screen bg-[#f4f7fa] dark:bg-[#111317];
 }
 
 .card {
-  @apply bg-white rounded-lg shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] border-none mb-6 overflow-hidden;
+  @apply bg-white dark:bg-[#1a1c23] rounded-lg shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] border-none mb-6 overflow-hidden transition-colors duration-300;
 }
 
 .card-header {
-  @apply px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white;
+  @apply px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[#1a1c23];
 }
 
 .card-header h5, .card-header h2 {
-  @apply text-sm font-bold text-gray-800 uppercase tracking-wider;
+  @apply text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider;
 }
 
 .card-body {
@@ -73,7 +81,7 @@
 }
 
 .btn-outline {
-  @apply border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-gray-50 transition-all;
+  @apply border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-gray-50 dark:hover:bg-white/5 transition-all;
 }
 
 @media print {

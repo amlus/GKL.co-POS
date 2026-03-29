@@ -52,6 +52,7 @@ const Products: React.FC = () => {
           id: doc.id, 
           ...d,
           // Ensure basePrice and sellingPrice exist for older records
+          price: d.price || 0,
           basePrice: d.basePrice || d.price || 0,
           sellingPrice: d.sellingPrice || d.price || 0
         } as Product;
@@ -423,8 +424,8 @@ const Products: React.FC = () => {
     <div className="space-y-8">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Manajemen Produk</h1>
-          <p className="text-gray-500 mt-1 text-sm lg:text-base">Kelola inventaris produk Anda dengan mudah.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Manajemen Produk</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm lg:text-base">Kelola inventaris produk Anda dengan mudah.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {selectedProducts.length > 0 && (
@@ -462,7 +463,7 @@ const Products: React.FC = () => {
           )}
           <button
             onClick={handleDownloadTemplate}
-            className="btn-outline flex items-center gap-2"
+            className="btn-outline flex items-center gap-2 dark:bg-dark dark:border-white/10 dark:text-gray-300"
             title="Unduh Template CSV"
           >
             <FileSpreadsheet className="w-4 h-4" />
@@ -477,7 +478,7 @@ const Products: React.FC = () => {
           />
           <button
             onClick={() => document.getElementById('csvImport')?.click()}
-            className="btn-outline flex items-center gap-2"
+            className="btn-outline flex items-center gap-2 dark:bg-dark dark:border-white/10 dark:text-gray-300"
             title="Import dari CSV"
           >
             <Upload className="w-4 h-4" />
@@ -485,7 +486,7 @@ const Products: React.FC = () => {
           </button>
           <button
             onClick={handleExportCSV}
-            className="btn-outline flex items-center gap-2"
+            className="btn-outline flex items-center gap-2 dark:bg-dark dark:border-white/10 dark:text-gray-300"
             title="Export ke CSV"
           >
             <Download className="w-4 h-4" />
@@ -508,7 +509,7 @@ const Products: React.FC = () => {
             <input
               type="text"
               placeholder="Cari produk..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all text-gray-900 dark:text-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -518,11 +519,11 @@ const Products: React.FC = () => {
           <div className="inline-block min-w-full align-middle">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
+                <tr className="bg-gray-50/50 dark:bg-dark/50 border-b border-gray-100 dark:border-white/5">
                   <th className="px-6 py-4 w-10">
                     <button 
                       onClick={toggleSelectAll}
-                      className="text-gray-400 hover:text-primary transition-colors"
+                      className="text-gray-400 dark:text-gray-600 hover:text-primary transition-colors"
                     >
                       {selectedProducts.length === filteredProducts.length && filteredProducts.length > 0 ? (
                         <CheckSquare className="w-5 h-5 text-primary" />
@@ -531,25 +532,25 @@ const Products: React.FC = () => {
                       )}
                     </button>
                   </th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Produk</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Barcode</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Kategori</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Harga Dasar</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Harga Jual</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Stok</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Aksi</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Produk</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Barcode</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Kategori</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Harga Dasar</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Harga Jual</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Stok</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right whitespace-nowrap">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-white/5">
                 {filteredProducts.map((product) => (
                   <tr key={product.id} className={cn(
-                    "hover:bg-gray-50/30 transition-colors group",
-                    selectedProducts.includes(product.id) && "bg-primary/5"
+                    "hover:bg-gray-50/30 dark:hover:bg-white/5 transition-colors group",
+                    selectedProducts.includes(product.id) && "bg-primary/5 dark:bg-primary/10"
                   )}>
                     <td className="px-6 py-4">
                       <button 
                         onClick={() => toggleSelectProduct(product.id)}
-                        className="text-gray-300 hover:text-primary transition-colors"
+                        className="text-gray-300 dark:text-gray-700 hover:text-primary transition-colors"
                       >
                         {selectedProducts.includes(product.id) ? (
                           <CheckSquare className="w-5 h-5 text-primary" />
@@ -560,18 +561,18 @@ const Products: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-dark/50 flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
                           {product.imageUrl ? (
                             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           ) : (
-                            <Package className="w-5 h-5 text-gray-300" />
+                            <Package className="w-5 h-5 text-gray-300 dark:text-gray-700" />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{product.name}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{product.name}</p>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {product.colors?.map((color, idx) => (
-                              <span key={idx} className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded border border-gray-200">
+                              <span key={idx} className="text-[9px] px-1.5 py-0.5 bg-gray-100 dark:bg-dark/50 text-gray-500 dark:text-gray-400 rounded border border-gray-200 dark:border-white/5">
                                 {color}
                               </span>
                             ))}
@@ -582,7 +583,7 @@ const Products: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {product.barcode ? (
                         <div className="flex flex-col items-start gap-1">
-                          <span className="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-dark/50 px-1.5 py-0.5 rounded">
                             {product.barcode}
                           </span>
                           <button 
@@ -594,7 +595,7 @@ const Products: React.FC = () => {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-gray-300 italic">No Barcode</span>
+                        <span className="text-[10px] text-gray-300 dark:text-gray-700 italic">No Barcode</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -602,16 +603,16 @@ const Products: React.FC = () => {
                         {product.category || 'Umum'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-500 whitespace-nowrap">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       Rp {(product.basePrice || product.price).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
                       Rp {(product.sellingPrice || product.price).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <div className={cn("w-2 h-2 rounded-full", product.stock < 10 ? "bg-warning" : "bg-success")} />
-                        <span className={cn("text-sm font-bold", product.stock < 10 ? "text-warning" : "text-gray-900")}>
+                        <span className={cn("text-sm font-bold", product.stock < 10 ? "text-warning" : "text-gray-900 dark:text-white")}>
                           {product.stock}
                         </span>
                       </div>
@@ -620,13 +621,13 @@ const Products: React.FC = () => {
                       <div className="flex items-center justify-end gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => handleOpenModal(product)}
-                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                          className="p-2 text-gray-400 dark:text-gray-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(product.id)}
-                          className="p-2 text-gray-400 hover:text-danger hover:bg-danger/5 rounded-lg transition-all"
+                          className="p-2 text-gray-400 dark:text-gray-600 hover:text-danger hover:bg-danger/5 rounded-lg transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -639,8 +640,8 @@ const Products: React.FC = () => {
           </div>
           {filteredProducts.length === 0 && (
             <div className="text-center py-20">
-              <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-400 text-sm">Produk tidak ditemukan.</p>
+              <Package className="w-12 h-12 text-gray-200 dark:text-gray-800 mx-auto mb-4" />
+              <p className="text-gray-400 dark:text-gray-600 text-sm">Produk tidak ditemukan.</p>
             </div>
           )}
         </div>
@@ -649,10 +650,10 @@ const Products: React.FC = () => {
       {/* Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h2 className="text-lg font-bold text-gray-900">{editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <div className="bg-white dark:bg-dark w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-dark/50">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-dark rounded-full transition-colors text-gray-900 dark:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -660,24 +661,24 @@ const Products: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nama Produk</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Nama Produk</label>
                   <input
                     required
                     type="text"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Barcode</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Barcode</label>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
                       <BarcodeIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
                         type="text"
                         placeholder="Scan atau masukkan barcode"
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                         value={formData.barcode}
                         onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                       />
@@ -685,7 +686,7 @@ const Products: React.FC = () => {
                     <button
                       type="button"
                       onClick={generateBarcode}
-                      className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 text-xs font-bold"
+                      className="px-3 py-2 bg-gray-100 dark:bg-dark/50 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-dark transition-colors flex items-center gap-2 text-xs font-bold"
                       title="Generate Barcode Otomatis"
                     >
                       <RefreshCw className="w-4 h-4" />
@@ -694,71 +695,71 @@ const Products: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Harga Dasar (Rp)</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Harga Dasar (Rp)</label>
                   <input
                     required
                     type="number"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                     value={formData.basePrice}
                     onChange={(e) => setFormData({ ...formData, basePrice: Number(e.target.value) })}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Harga Jual (Rp)</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Harga Jual (Rp)</label>
                   <input
                     required
                     type="number"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                     value={formData.sellingPrice}
                     onChange={(e) => setFormData({ ...formData, sellingPrice: Number(e.target.value) })}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Stok Awal</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Stok Awal</label>
                   <input
                     required
                     type="number"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                     value={formData.stock}
                     onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Kategori</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Kategori</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">URL Gambar</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">URL Gambar</label>
                   <div className="relative">
                     <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="url"
-                      className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                       value={formData.imageUrl}
                       onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     />
                   </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Deskripsi</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Deskripsi</label>
                   <textarea
                     rows={2}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none text-gray-900 dark:text-white"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Varian Warna (Pisahkan dengan koma)</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Varian Warna (Pisahkan dengan koma)</label>
                   <input
                     type="text"
                     placeholder="Contoh: Merah, Biru, Hijau"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                     value={formData.colors}
                     onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
                   />
@@ -769,7 +770,7 @@ const Products: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-6 py-2.5 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition-all text-sm"
+                  className="flex-1 px-6 py-2.5 border border-gray-200 dark:border-white/10 rounded-lg font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark/50 transition-all text-sm"
                 >
                   Batal
                 </button>
@@ -788,10 +789,10 @@ const Products: React.FC = () => {
       {/* Bulk Edit Modal */}
       {isBulkModalOpen && (
         <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h2 className="text-lg font-bold text-gray-900">Edit Massal ({selectedProducts.length} Produk)</h2>
-              <button onClick={() => setIsBulkModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <div className="bg-white dark:bg-dark w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-dark/50">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Edit Massal ({selectedProducts.length} Produk)</h2>
+              <button onClick={() => setIsBulkModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-dark rounded-full transition-colors text-gray-900 dark:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -803,17 +804,17 @@ const Products: React.FC = () => {
                   <input
                     type="checkbox"
                     id="updateCategory"
-                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                    className="w-4 h-4 text-primary rounded border-gray-300 dark:border-white/10 bg-white dark:bg-dark focus:ring-primary"
                     checked={bulkFormData.updateCategory}
                     onChange={(e) => setBulkFormData({ ...bulkFormData, updateCategory: e.target.checked })}
                   />
-                  <label htmlFor="updateCategory" className="text-sm font-bold text-gray-700">Update Kategori</label>
+                  <label htmlFor="updateCategory" className="text-sm font-bold text-gray-700 dark:text-gray-300">Update Kategori</label>
                 </div>
                 {bulkFormData.updateCategory && (
                   <input
                     type="text"
                     placeholder="Masukkan kategori baru"
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                     value={bulkFormData.category}
                     onChange={(e) => setBulkFormData({ ...bulkFormData, category: e.target.value })}
                   />
@@ -826,16 +827,16 @@ const Products: React.FC = () => {
                   <input
                     type="checkbox"
                     id="updatePrice"
-                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                    className="w-4 h-4 text-primary rounded border-gray-300 dark:border-white/10 bg-white dark:bg-dark focus:ring-primary"
                     checked={bulkFormData.updatePrice}
                     onChange={(e) => setBulkFormData({ ...bulkFormData, updatePrice: e.target.checked })}
                   />
-                  <label htmlFor="updatePrice" className="text-sm font-bold text-gray-700">Update Harga Jual</label>
+                  <label htmlFor="updatePrice" className="text-sm font-bold text-gray-700 dark:text-gray-300">Update Harga Jual</label>
                 </div>
                 {bulkFormData.updatePrice && (
                   <div className="flex gap-2">
                     <select
-                      className="px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="px-3 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                       value={bulkFormData.priceType}
                       onChange={(e) => setBulkFormData({ ...bulkFormData, priceType: e.target.value as any })}
                     >
@@ -844,7 +845,7 @@ const Products: React.FC = () => {
                     </select>
                     <input
                       type="number"
-                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="flex-1 px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                       value={bulkFormData.priceAdjustment}
                       onChange={(e) => setBulkFormData({ ...bulkFormData, priceAdjustment: Number(e.target.value) })}
                     />
@@ -858,16 +859,16 @@ const Products: React.FC = () => {
                   <input
                     type="checkbox"
                     id="updateStock"
-                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                    className="w-4 h-4 text-primary rounded border-gray-300 dark:border-white/10 bg-white dark:bg-dark focus:ring-primary"
                     checked={bulkFormData.updateStock}
                     onChange={(e) => setBulkFormData({ ...bulkFormData, updateStock: e.target.checked })}
                   />
-                  <label htmlFor="updateStock" className="text-sm font-bold text-gray-700">Update Stok</label>
+                  <label htmlFor="updateStock" className="text-sm font-bold text-gray-700 dark:text-gray-300">Update Stok</label>
                 </div>
                 {bulkFormData.updateStock && (
                   <div className="flex gap-2">
                     <select
-                      className="px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="px-3 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                       value={bulkFormData.stockType}
                       onChange={(e) => setBulkFormData({ ...bulkFormData, stockType: e.target.value as any })}
                     >
@@ -876,7 +877,7 @@ const Products: React.FC = () => {
                     </select>
                     <input
                       type="number"
-                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="flex-1 px-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
                       value={bulkFormData.stockUpdate}
                       onChange={(e) => setBulkFormData({ ...bulkFormData, stockUpdate: Number(e.target.value) })}
                     />
@@ -888,7 +889,7 @@ const Products: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsBulkModalOpen(false)}
-                  className="flex-1 px-6 py-2.5 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition-all text-sm"
+                  className="flex-1 px-6 py-2.5 border border-gray-200 dark:border-white/10 rounded-lg font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-dark/50 transition-all text-sm"
                 >
                   Batal
                 </button>
@@ -909,16 +910,16 @@ const Products: React.FC = () => {
       {/* Barcode View Modal */}
       {showBarcodeModal && (
         <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h2 className="text-lg font-bold text-gray-900">Barcode Produk</h2>
-              <button onClick={() => setShowBarcodeModal(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <div className="bg-white dark:bg-dark w-full max-w-sm rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-dark/50">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Barcode Produk</h2>
+              <button onClick={() => setShowBarcodeModal(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-dark rounded-full transition-colors text-gray-900 dark:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-8 flex flex-col items-center gap-6">
               <div ref={printRef} className="bg-white p-6 rounded-lg border border-gray-100 flex flex-col items-center gap-4">
-                <p className="text-sm font-bold text-gray-900">{showBarcodeModal.name}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">{showBarcodeModal.name}</p>
                 
                 <div className="flex flex-col items-center gap-6">
                   <div className="flex flex-col items-center">

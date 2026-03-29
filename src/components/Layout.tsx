@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { LayoutDashboard, ShoppingCart, Package, History, BarChart3, LogOut, User, Settings, Menu, Bell, Search, ChevronDown } from 'lucide-react';
+import { useTheme } from './ThemeContext';
+import { LayoutDashboard, ShoppingCart, Package, History, BarChart3, LogOut, User, Settings, Menu, Bell, Search, ChevronDown, Sun, Moon } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -11,6 +12,7 @@ function cn(...inputs: ClassValue[]) {
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { profile, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
@@ -114,21 +116,29 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <input 
               type="text" 
               placeholder="Cari..." 
-              className="bg-gray-100 border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 w-64 outline-none"
+              className="bg-gray-100 dark:bg-dark/50 border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 w-64 outline-none text-gray-900 dark:text-white"
             />
           </div>
 
-          <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border-2 border-white"></span>
+          <button 
+            onClick={toggleTheme}
+            className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-dark rounded-full transition-colors"
+            title={theme === 'light' ? 'Mode Gelap' : 'Mode Terang'}
+          >
+            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
 
-          <div className="h-8 w-px bg-gray-200 mx-2"></div>
+          <button className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-dark rounded-full relative">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border-2 border-white dark:border-dark"></span>
+          </button>
+
+          <div className="h-8 w-px bg-gray-200 dark:bg-white/10 mx-2"></div>
 
           <div className="flex items-center gap-3 cursor-pointer group">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-gray-900 leading-none">{profile?.name}</p>
-              <p className="text-[10px] text-gray-500 uppercase font-bold mt-1 tracking-wider">{profile?.role}</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white leading-none">{profile?.name}</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold mt-1 tracking-wider">{profile?.role}</p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
               {profile?.name?.[0] || 'U'}

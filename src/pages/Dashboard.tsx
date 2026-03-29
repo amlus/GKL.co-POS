@@ -63,25 +63,25 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Ringkasan Dashboard</h1>
-          <p className="text-gray-500 mt-1 text-sm lg:text-base">Selamat datang kembali! Berikut adalah aktivitas hari ini.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Ringkasan Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm lg:text-base">Selamat datang kembali! Berikut adalah aktivitas hari ini.</p>
         </div>
       </header>
 
       {/* Low Stock Notifications */}
       {productsToNotify.length > 0 && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-6 rounded-2xl shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-red-900 mb-1">Peringatan Stok Sangat Rendah!</h3>
-              <p className="text-red-700 text-sm mb-4">Beberapa produk memiliki stok di bawah {lowStockThreshold} unit. Segera lakukan restok untuk menghindari kehabisan barang.</p>
+              <h3 className="text-lg font-bold text-red-900 dark:text-red-100 mb-1">Peringatan Stok Sangat Rendah!</h3>
+              <p className="text-red-700 dark:text-red-300 text-sm mb-4">Beberapa produk memiliki stok di bawah {lowStockThreshold} unit. Segera lakukan restok untuk menghindari kehabisan barang.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {productsToNotify.map(product => (
-                  <div key={product.id} className="bg-white/60 backdrop-blur-sm border border-red-100 rounded-xl p-3 flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-900 truncate pr-2">{product.name}</span>
+                  <div key={product.id} className="bg-white/60 dark:bg-dark/40 backdrop-blur-sm border border-red-100 dark:border-red-900/30 rounded-xl p-3 flex items-center justify-between">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white truncate pr-2">{product.name}</span>
                     <span className="bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-full whitespace-nowrap">
                       Sisa {product.stock}
                     </span>
@@ -97,12 +97,12 @@ const Dashboard: React.FC = () => {
         {stats.map((stat) => (
           <div key={stat.name} className="card overflow-hidden">
             <div className="p-6 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center shadow-lg shadow-gray-200`}>
+              <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center shadow-lg shadow-gray-200 dark:shadow-none`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{stat.name}</p>
-                <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">{stat.name}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{stat.value}</p>
               </div>
             </div>
           </div>
@@ -112,8 +112,8 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 card">
           <div className="card-header">
-            <h2 className="text-lg font-bold text-gray-900">Tren Penjualan Mingguan</h2>
-            <select className="text-xs border-none bg-gray-50 rounded-lg px-3 py-1 focus:ring-0 outline-none">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Tren Penjualan Mingguan</h2>
+            <select className="text-xs border-none bg-gray-50 dark:bg-dark/50 text-gray-900 dark:text-white rounded-lg px-3 py-1 focus:ring-0 outline-none">
               <option>7 Hari Terakhir</option>
               <option>30 Hari Terakhir</option>
             </select>
@@ -128,11 +128,11 @@ const Dashboard: React.FC = () => {
                       <stop offset="95%" stopColor="#4680ff" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" opacity={0.1} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
                   <Tooltip 
-                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                    contentStyle={{borderRadius: '12px', border: 'none', backgroundColor: '#1a1c23', color: '#fff', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)'}}
                   />
                   <Area type="monotone" dataKey="sales" stroke="#4680ff" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
                 </AreaChart>
@@ -143,19 +143,19 @@ const Dashboard: React.FC = () => {
 
         <div className="card">
           <div className="card-header">
-            <h2 className="text-lg font-bold text-gray-900">Transaksi Terbaru</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Transaksi Terbaru</h2>
           </div>
           <div className="card-body">
             <div className="space-y-4">
               {transactions.slice(0, 5).map((t) => (
-                <div key={t.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
+                <div key={t.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-dark/50 rounded-xl transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                       {t.cashierName[0]}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900">Rp {t.finalAmount.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500">{format(t.timestamp.toDate(), 'HH:mm')}</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">Rp {t.finalAmount.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{format(t.timestamp.toDate(), 'HH:mm')}</p>
                     </div>
                   </div>
                   <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${
@@ -167,7 +167,7 @@ const Dashboard: React.FC = () => {
               ))}
               {transactions.length === 0 && (
                 <div className="text-center py-12">
-                  <ShoppingBag className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                  <ShoppingBag className="w-12 h-12 text-gray-200 dark:text-gray-800 mx-auto mb-3" />
                   <p className="text-gray-400 text-sm">Belum ada transaksi hari ini.</p>
                 </div>
               )}

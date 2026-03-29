@@ -50,15 +50,15 @@ const Transactions: React.FC = () => {
     <div className="space-y-8">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
-          <p className="text-gray-500 mt-1 text-sm lg:text-base">Lihat dan kelola semua catatan penjualan.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Riwayat Transaksi</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm lg:text-base">Lihat dan kelola semua catatan penjualan.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative w-full lg:w-auto">
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="date"
-              className="w-full lg:w-auto pl-10 pr-4 py-2 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-sm font-bold"
+              className="w-full lg:w-auto pl-10 pr-4 py-2 bg-white dark:bg-dark border border-gray-100 dark:border-white/5 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-sm font-bold text-gray-900 dark:text-white"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
             />
@@ -71,7 +71,7 @@ const Transactions: React.FC = () => {
         <input
           type="text"
           placeholder="Cari berdasarkan ID atau kasir..."
-          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none"
+          className="w-full pl-12 pr-4 py-3 bg-white dark:bg-dark border border-gray-100 dark:border-white/5 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -82,24 +82,24 @@ const Transactions: React.FC = () => {
           <div className="inline-block min-w-full align-middle">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">ID Transaksi</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Waktu</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Kasir</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Pembayaran</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Jumlah</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Detail</th>
+                <tr className="bg-gray-50/50 dark:bg-dark/50 border-b border-gray-100 dark:border-white/5">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">ID Transaksi</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Waktu</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Kasir</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Pembayaran</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Jumlah</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest text-right whitespace-nowrap">Detail</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-white/5">
                 {filteredTransactions.map((t) => {
                   const Icon = getPaymentIcon(t.paymentMethod);
                   return (
-                    <tr key={t.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-6 py-4 font-mono text-xs font-bold text-gray-400 whitespace-nowrap">
+                    <tr key={t.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
+                      <td className="px-6 py-4 font-mono text-xs font-bold text-gray-400 dark:text-gray-600 whitespace-nowrap">
                         #{t.id.slice(-8).toUpperCase()}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                         {format(t.timestamp.toDate(), 'HH:mm:ss')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -107,22 +107,22 @@ const Transactions: React.FC = () => {
                           <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                             {t.cashierName[0]}
                           </div>
-                          <span className="text-sm font-bold text-gray-900">{t.cashierName}</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-white">{t.cashierName}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4 text-gray-400" />
-                          <span className="text-[10px] font-bold uppercase text-gray-500 tracking-wider">{t.paymentMethod}</span>
+                          <Icon className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                          <span className="text-[10px] font-bold uppercase text-gray-500 dark:text-gray-400 tracking-wider">{t.paymentMethod}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
+                      <td className="px-6 py-4 font-bold text-gray-900 dark:text-white whitespace-nowrap">
                         Rp {t.finalAmount.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         <button 
                           onClick={() => setSelectedTransaction(t)}
-                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                          className="p-2 text-gray-400 dark:text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
                         >
                           <ChevronRight className="w-5 h-5" />
                         </button>
@@ -136,8 +136,8 @@ const Transactions: React.FC = () => {
         </div>
         {filteredTransactions.length === 0 && (
           <div className="text-center py-20">
-            <Receipt className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-            <p className="text-gray-400 font-bold">Transaksi tidak ditemukan untuk tanggal ini.</p>
+            <Receipt className="w-16 h-16 text-gray-200 dark:text-gray-800 mx-auto mb-4" />
+            <p className="text-gray-400 dark:text-gray-600 font-bold">Transaksi tidak ditemukan untuk tanggal ini.</p>
           </div>
         )}
       </div>
@@ -145,58 +145,64 @@ const Transactions: React.FC = () => {
       {/* Transaction Details Modal */}
       {selectedTransaction && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 no-print">
-          <div className="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 printable-receipt">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 no-print">
-              <h2 className="text-lg font-bold text-gray-900">Detail Transaksi</h2>
-              <button onClick={() => setSelectedTransaction(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+          <div className="bg-white dark:bg-dark w-full max-w-md rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 printable-receipt">
+            <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-dark/50 no-print">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Detail Transaksi</h2>
+              <button onClick={() => setSelectedTransaction(null)} className="p-2 hover:bg-gray-200 dark:hover:bg-dark rounded-full transition-colors text-gray-900 dark:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-8 space-y-6">
-              <div className="text-center pb-6 border-b border-dashed border-gray-200 hidden print:block">
-                <h2 className="text-2xl font-bold text-gray-900">GKL.co POS</h2>
-                <p className="text-gray-500 text-sm">Struk Pembelian</p>
+              <div className="text-center pb-6 border-b border-dashed border-gray-200 dark:border-white/10 hidden print:block">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">GKL.co POS</h2>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Struk Pembelian</p>
               </div>
 
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">ID Transaksi</p>
-                  <p className="font-mono text-base font-bold text-gray-900">#{selectedTransaction.id.slice(-8).toUpperCase()}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-widest">ID Transaksi</p>
+                  <p className="font-mono text-base font-bold text-gray-900 dark:text-white">#{selectedTransaction.id.slice(-8).toUpperCase()}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Tanggal & Waktu</p>
-                  <p className="text-sm font-bold text-gray-900">{format(selectedTransaction.timestamp.toDate(), 'dd MMM yyyy, HH:mm:ss')}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-widest">Tanggal & Waktu</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{format(selectedTransaction.timestamp.toDate(), 'dd MMM yyyy, HH:mm:ss')}</p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Item Pesanan</p>
-                <div className="space-y-2 bg-gray-50 rounded-lg p-4 print:bg-white print:p-0">
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-widest">Item Pesanan</p>
+                <div className="space-y-2 bg-gray-50 dark:bg-dark/50 rounded-lg p-4 print:bg-white print:p-0">
                   {selectedTransaction.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between text-sm">
                       <div className="flex flex-col">
-                        <span className="text-gray-600 font-medium">{item.quantity}x {item.name}</span>
+                        <span className="text-gray-600 dark:text-gray-300 font-medium">{item.quantity}x {item.name}</span>
                         {item.selectedColor && (
-                          <span className="text-[10px] text-gray-400 uppercase font-bold">{item.selectedColor}</span>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold">{item.selectedColor}</span>
                         )}
                       </div>
-                      <span className="font-bold">Rp {item.subtotal.toLocaleString()}</span>
+                      <span className="font-bold text-gray-900 dark:text-white">Rp {item.subtotal.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-2 pt-4 border-t border-gray-100">
+              <div className="space-y-2 pt-4 border-t border-gray-100 dark:border-white/5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal</span>
-                  <span className="font-bold">Rp {selectedTransaction.totalAmount.toLocaleString()}</span>
+                  <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
+                  <span className="font-bold text-gray-900 dark:text-white">Rp {selectedTransaction.totalAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Diskon</span>
+                  <span className="text-gray-500 dark:text-gray-400">Diskon</span>
                   <span className="text-danger font-bold">-Rp {selectedTransaction.discount.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-2xl font-black text-gray-900 pt-2">
+                {selectedTransaction.memberDiscount && selectedTransaction.memberDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-indigo-600 dark:text-indigo-400 font-bold">
+                    <span>Diskon Member</span>
+                    <span>-Rp {selectedTransaction.memberDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-2xl font-black text-gray-900 dark:text-white pt-2">
                   <span>Total</span>
                   <span className="text-primary">Rp {selectedTransaction.finalAmount.toLocaleString()}</span>
                 </div>
@@ -209,24 +215,24 @@ const Transactions: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Metode Pembayaran</p>
-                    <p className="font-bold text-gray-900">{selectedTransaction.paymentMethod}</p>
+                    <p className="font-bold text-gray-900 dark:text-white">{selectedTransaction.paymentMethod}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Kasir</p>
-                  <p className="font-bold text-gray-900">{selectedTransaction.cashierName}</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{selectedTransaction.cashierName}</p>
                 </div>
               </div>
 
-              <div className="pt-6 text-center text-xs text-gray-400 hidden print:block">
+              <div className="pt-6 text-center text-xs text-gray-400 dark:text-gray-600 hidden print:block">
                 <p className="font-bold text-primary italic">Terima kasih telah berbelanja!</p>
               </div>
             </div>
 
-            <div className="p-6 bg-gray-50 flex gap-3 no-print">
+            <div className="p-6 bg-gray-50 dark:bg-dark/50 flex gap-3 no-print">
               <button 
                 onClick={() => window.print()}
-                className="flex-1 bg-white border border-gray-200 py-3 rounded-lg font-bold text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-white dark:bg-dark border border-gray-200 dark:border-white/10 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark/50 transition-colors flex items-center justify-center gap-2"
               >
                 <Receipt className="w-4 h-4" />
                 Cetak Struk
