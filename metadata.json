@@ -1,5 +1,5 @@
 {
   "name": "GKL.co POS",
   "description": "A comprehensive Point of Sale (POS) system for GKL.co with product management, sales transactions, stock management, and reports.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera"]
 }

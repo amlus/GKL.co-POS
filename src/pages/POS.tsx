@@ -2,8 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db, collection, onSnapshot, query, where, addDoc, updateDoc, doc, Timestamp, handleFirestoreError, OperationType } from '../firebase';
 import { Product, Transaction, TransactionItem, PaymentMethod } from '../types';
 import { useAuth } from '../components/AuthContext';
-import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Receipt, CreditCard, Wallet, Banknote, X, Package } from 'lucide-react';
+import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Receipt, CreditCard, Wallet, Banknote, X, Package, Barcode, QrCode } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { format } from 'date-fns';
+import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -24,6 +26,7 @@ const POS: React.FC = () => {
   const [selectingProduct, setSelectingProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [showCartMobile, setShowCartMobile] = useState(false);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -36,9 +39,68 @@ const POS: React.FC = () => {
   const filteredProducts = useMemo(() => {
     return products.filter(p => 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.barcode?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [products, searchQuery]);
+
+  // Barcode scanning logic
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // If user is typing in an input, don't trigger barcode logic
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Simple buffer for barcode scanning
+      // Most scanners send characters quickly followed by Enter
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [products, cart]);
+
+  // QR Scanner logic
+  useEffect(() => {
+    let scanner: Html5QrcodeScanner | null = null;
+    if (isQRScannerOpen) {
+      scanner = new Html5QrcodeScanner(
+        "qr-reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        false
+      );
+
+      const onScanSuccess = (decodedText: string) => {
+        const product = products.find(p => p.barcode === decodedText);
+        if (product) {
+          handleProductClick(product);
+          setIsQRScannerOpen(false);
+          // Optional: Add a small sound or vibration feedback here
+        }
+      };
+
+      const onScanFailure = (error: any) => {
+        // console.warn(`Code scan error = ${error}`);
+      };
+
+      scanner.render(onScanSuccess, onScanFailure);
+    }
+
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(error => console.error("Failed to clear scanner", error));
+      }
+    };
+  }, [isQRScannerOpen, products]);
+
+  const handleBarcodeSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const product = products.find(p => p.barcode === searchQuery);
+    if (product) {
+      handleProductClick(product);
+      setSearchQuery('');
+    }
+  };
 
   const addToCart = (product: Product, color?: string) => {
     setCart(prev => {
@@ -151,16 +213,30 @@ const POS: React.FC = () => {
         "flex-1 flex flex-col gap-4 lg:gap-6 min-w-0",
         showCartMobile && "hidden lg:flex"
       )}>
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Cari produk..."
-            className="w-full pl-12 pr-4 py-3 lg:py-4 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-sm lg:text-base"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        <form onSubmit={handleBarcodeSearch} className="relative flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Cari produk atau scan barcode..."
+              className="w-full pl-12 pr-12 py-3 lg:py-4 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-sm lg:text-base"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300">
+              <Barcode className="w-5 h-5" />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsQRScannerOpen(true)}
+            className="p-3 lg:p-4 bg-white border border-gray-100 rounded-lg shadow-sm hover:border-primary hover:text-primary transition-all flex items-center justify-center"
+            title="Scan QR Code"
+          >
+            <QrCode className="w-5 h-5 lg:w-6 lg:h-6" />
+          </button>
+        </form>
 
         <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 content-start pb-20 lg:pb-0">
           {filteredProducts.map((product) => (
@@ -197,150 +273,215 @@ const POS: React.FC = () => {
       </div>
 
       {/* Cart & Checkout */}
-      <div className={cn(
-        "w-full lg:w-96 bg-white border border-gray-100 rounded-lg shadow-xl flex flex-col overflow-hidden",
-        !showCartMobile && "hidden lg:flex"
-      )}>
-        <div className="p-4 lg:p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setShowCartMobile(false)}
-              className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <ShoppingCart className="w-5 h-5 text-primary" />
-            <h2 className="text-base lg:text-lg font-bold text-gray-900">Pesanan Saat Ini</h2>
-          </div>
-          <span className="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-            {cart.reduce((sum, i) => sum + i.quantity, 0)} item
-          </span>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4">
-          {cart.map((item, idx) => (
-            <div key={`${item.productId}-${item.selectedColor || 'none'}-${idx}`} className="flex items-center gap-4 group">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 truncate">{item.name}</p>
-                {item.selectedColor && (
-                  <p className="text-[10px] text-primary font-bold uppercase tracking-wider">{item.selectedColor}</p>
-                )}
-                <p className="text-xs text-gray-500">Rp {item.price.toLocaleString()}</p>
-              </div>
-              <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
-                <button 
-                  onClick={() => updateQuantity(item.productId, -1, item.selectedColor)}
-                  className="p-1 hover:bg-white rounded transition-colors"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="text-xs font-bold w-6 text-center">{item.quantity}</span>
-                <button 
-                  onClick={() => updateQuantity(item.productId, 1, item.selectedColor)}
-                  className="p-1 hover:bg-white rounded transition-colors"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              </div>
-              <button 
-                onClick={() => removeFromCart(item.productId, item.selectedColor)}
-                className="p-2 text-gray-300 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-          {cart.length === 0 && (
-            <div className="text-center py-20">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="w-8 h-8 text-gray-200" />
-              </div>
-              <p className="text-gray-400 text-sm">Keranjang Anda kosong</p>
-            </div>
-          )}
-        </div>
-
-        <div className="p-4 lg:p-6 bg-gray-50 border-t border-gray-100 space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Subtotal</span>
-              <span>Rp {subtotal.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Diskon</span>
-              <div className="flex items-center gap-2">
-                <span className="text-danger font-bold">-</span>
-                <input
-                  type="number"
-                  className="w-20 text-right bg-transparent border-b border-gray-300 focus:border-primary outline-none text-danger font-bold"
-                  value={discount}
-                  onChange={(e) => setDiscount(Number(e.target.value))}
-                />
-              </div>
-            </div>
-            <div className="flex justify-between text-xl font-black text-gray-900 pt-2 border-t border-gray-200">
-              <span>Total</span>
-              <span className="text-primary">Rp {total.toLocaleString()}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'Cash', icon: Banknote },
-              { id: 'QRIS', icon: CreditCard },
-              { id: 'E-Wallet', icon: Wallet }
-            ].map((method) => (
-              <button
-                key={method.id}
-                onClick={() => setPaymentMethod(method.id as PaymentMethod)}
-                className={cn(
-                  "flex flex-col items-center gap-1 p-2 rounded-lg border transition-all",
-                  paymentMethod === method.id 
-                    ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
-                    : "bg-white border-gray-100 text-gray-500 hover:border-primary"
-                )}
-              >
-                <method.icon className="w-4 h-4" />
-                <span className="text-[9px] font-bold uppercase tracking-wider">{method.id}</span>
-              </button>
-            ))}
-          </div>
-
-          <button
-            disabled={cart.length === 0 || isCheckingOut}
-            onClick={handleCheckout}
-            className="w-full bg-primary text-white py-3 lg:py-4 rounded-lg font-bold text-base lg:text-lg shadow-xl shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
-          >
-            {isCheckingOut ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <CheckCircle2 className="w-6 h-6" />
-                Bayar Sekarang
-              </>
+      <AnimatePresence>
+        {(showCartMobile || window.innerWidth >= 1024) && (
+          <motion.div 
+            initial={window.innerWidth < 1024 ? { y: '100%' } : { x: '100%' }}
+            animate={window.innerWidth < 1024 ? { y: 0 } : { x: 0 }}
+            exit={window.innerWidth < 1024 ? { y: '100%' } : { x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className={cn(
+              "bg-white flex flex-col overflow-hidden z-50",
+              "fixed inset-0 lg:relative lg:inset-auto lg:w-96 lg:flex lg:border lg:border-gray-100 lg:rounded-lg lg:shadow-xl"
             )}
-          </button>
-        </div>
-      </div>
+          >
+            <div className="p-4 lg:p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setShowCartMobile(false)}
+                  className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-600" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                  <h2 className="text-base lg:text-lg font-bold text-gray-900">Pesanan Saat Ini</h2>
+                </div>
+              </div>
+              <span className="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                {cart.reduce((sum, i) => sum + i.quantity, 0)} item
+              </span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6">
+              {cart.map((item, idx) => (
+                <div key={`${item.productId}-${item.selectedColor || 'none'}-${idx}`} className="flex items-center gap-4 group bg-white p-3 rounded-xl border border-gray-50 shadow-sm lg:shadow-none lg:border-none lg:p-0">
+                  <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {products.find(p => p.id === item.productId)?.imageUrl ? (
+                      <img src={products.find(p => p.id === item.productId)?.imageUrl} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <Package className="w-6 h-6 text-gray-300" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">{item.name}</p>
+                    {item.selectedColor && (
+                      <p className="text-[10px] text-primary font-bold uppercase tracking-wider">{item.selectedColor}</p>
+                    )}
+                    <p className="text-xs text-gray-500 font-medium">Rp {item.price.toLocaleString()}</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+                    <button 
+                      onClick={() => updateQuantity(item.productId, -1, item.selectedColor)}
+                      className="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm hover:text-primary transition-all active:scale-90"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-bold w-8 text-center">{item.quantity}</span>
+                    <button 
+                      onClick={() => updateQuantity(item.productId, 1, item.selectedColor)}
+                      className="w-8 h-8 flex items-center justify-center bg-white rounded-lg shadow-sm hover:text-primary transition-all active:scale-90"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <button 
+                    onClick={() => removeFromCart(item.productId, item.selectedColor)}
+                    className="p-2 text-gray-300 hover:text-danger transition-colors active:scale-90"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
+              {cart.length === 0 && (
+                <div className="text-center py-20">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ShoppingCart className="w-10 h-10 text-gray-200" />
+                  </div>
+                  <p className="text-gray-400 text-sm font-medium">Keranjang Anda kosong</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 lg:p-6 bg-gray-50 border-t border-gray-100 space-y-4 pb-safe">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Subtotal</span>
+                  <span className="font-bold">Rp {subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Diskon</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-danger font-bold">-</span>
+                    <input
+                      type="number"
+                      className="w-24 text-right bg-white border border-gray-200 rounded-lg px-2 py-1 focus:border-primary outline-none text-danger font-bold text-sm"
+                      value={discount}
+                      onChange={(e) => setDiscount(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between text-2xl font-black text-gray-900 pt-4 border-t border-gray-200">
+                  <span>Total</span>
+                  <span className="text-primary">Rp {total.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { id: 'Cash', icon: Banknote },
+                  { id: 'QRIS', icon: CreditCard },
+                  { id: 'E-Wallet', icon: Wallet }
+                ].map((method) => (
+                  <button
+                    key={method.id}
+                    onClick={() => setPaymentMethod(method.id as PaymentMethod)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-xl border transition-all active:scale-95",
+                      paymentMethod === method.id 
+                        ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
+                        : "bg-white border-gray-200 text-gray-500 hover:border-primary"
+                    )}
+                  >
+                    <method.icon className="w-5 h-5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{method.id}</span>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                disabled={cart.length === 0 || isCheckingOut}
+                onClick={handleCheckout}
+                className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+              >
+                {isCheckingOut ? (
+                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-6 h-6" />
+                    Bayar Sekarang
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Cart Toggle */}
-      {!showCartMobile && cart.length > 0 && (
-        <div className="fixed bottom-6 left-6 right-6 lg:hidden z-40">
-          <button
-            onClick={() => setShowCartMobile(true)}
-            className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-2xl shadow-primary/40 flex items-center justify-between px-6 animate-in slide-in-from-bottom duration-300"
+      <AnimatePresence>
+        {!showCartMobile && cart.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-6 right-6 lg:hidden z-40"
           >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <ShoppingCart className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-primary">
-                  {cart.reduce((sum, i) => sum + i.quantity, 0)}
-                </span>
+            <button
+              onClick={() => setShowCartMobile(true)}
+              className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-2xl shadow-primary/40 flex items-center justify-between px-6 active:scale-95 transition-transform"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <ShoppingCart className="w-6 h-6" />
+                  </div>
+                  <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-primary shadow-sm">
+                    {cart.reduce((sum, i) => sum + i.quantity, 0)}
+                  </span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] uppercase tracking-widest font-black opacity-80">Keranjang</span>
+                  <span className="text-sm font-bold">Lihat Pesanan</span>
+                </div>
               </div>
-              <span className="text-sm uppercase tracking-widest">Lihat Keranjang</span>
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] uppercase tracking-widest font-black opacity-80">Total</span>
+                <span className="text-lg font-black">Rp {total.toLocaleString()}</span>
+              </div>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* QR Scanner Modal */}
+      {isQRScannerOpen && (
+        <div className="fixed inset-0 bg-dark/60 backdrop-blur-md flex items-center justify-center z-[60] p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-bold text-gray-900">Scan QR Code</h2>
+              </div>
+              <button onClick={() => setIsQRScannerOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <span className="text-lg font-black">Rp {total.toLocaleString()}</span>
-          </button>
+            <div className="p-6">
+              <div id="qr-reader" className="overflow-hidden rounded-xl border-2 border-dashed border-gray-200 bg-gray-50"></div>
+              <p className="text-center text-sm text-gray-500 mt-4">
+                Arahkan kamera ke QR Code produk untuk menambahkannya ke keranjang.
+              </p>
+            </div>
+            <div className="p-6 bg-gray-50 border-t border-gray-100">
+              <button
+                onClick={() => setIsQRScannerOpen(false)}
+                className="w-full py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-all"
+              >
+                Tutup Scanner
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

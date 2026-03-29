@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
-import { Plus, Search, Edit2, Trash2, Package, X, Save, Image as ImageIcon, Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, X, Save, Image as ImageIcon, Download, Upload, FileSpreadsheet, Barcode as BarcodeIcon, Printer, RefreshCw } from 'lucide-react';
+import Barcode from 'react-barcode';
+import { QRCodeSVG } from 'qrcode.react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -16,6 +18,7 @@ const Products: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: '',
+    barcode: '',
     price: 0,
     basePrice: 0,
     sellingPrice: 0,
@@ -25,6 +28,8 @@ const Products: React.FC = () => {
     imageUrl: '',
     colors: ''
   });
+  const [showBarcodeModal, setShowBarcodeModal] = useState<Product | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -48,6 +53,7 @@ const Products: React.FC = () => {
       setEditingProduct(product);
       setFormData({
         name: product.name,
+        barcode: product.barcode || '',
         price: product.price,
         basePrice: product.basePrice || product.price,
         sellingPrice: product.sellingPrice || product.price,
@@ -59,9 +65,15 @@ const Products: React.FC = () => {
       });
     } else {
       setEditingProduct(null);
-      setFormData({ name: '', price: 0, basePrice: 0, sellingPrice: 0, stock: 0, category: '', description: '', imageUrl: '', colors: '' });
+      setFormData({ name: '', barcode: '', price: 0, basePrice: 0, sellingPrice: 0, stock: 0, category: '', description: '', imageUrl: '', colors: '' });
     }
     setIsModalOpen(true);
+  };
+
+  const generateBarcode = () => {
+    const timestamp = Date.now().toString();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    setFormData({ ...formData, barcode: `GKL${timestamp.slice(-8)}${random}` });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,9 +116,10 @@ const Products: React.FC = () => {
       return;
     }
 
-    const headers = ['Nama', 'Kategori', 'Harga Dasar', 'Harga Jual', 'Stok', 'Deskripsi', 'URL Gambar'];
+    const headers = ['Nama', 'Barcode', 'Kategori', 'Harga Dasar', 'Harga Jual', 'Stok', 'Deskripsi', 'URL Gambar'];
     const rows = products.map(p => [
       `"${p.name}"`,
+      `"${p.barcode || ''}"`,
       `"${p.category || ''}"`,
       p.basePrice || p.price,
       p.sellingPrice || p.price,
@@ -156,12 +169,13 @@ const Products: React.FC = () => {
           const clean = (val: string) => val.replace(/^"|"$/g, '').trim();
 
           const name = clean(values[0]);
-          const category = clean(values[1]);
-          const basePrice = Number(clean(values[2]));
-          const sellingPrice = Number(clean(values[3]));
-          const stock = Number(clean(values[4]));
-          const description = values[5] ? clean(values[5]) : '';
-          const imageUrl = values[6] ? clean(values[6]) : '';
+          const barcode = values[1] ? clean(values[1]) : '';
+          const category = clean(values[2]);
+          const basePrice = Number(clean(values[3]));
+          const sellingPrice = Number(clean(values[4]));
+          const stock = Number(clean(values[5]));
+          const description = values[6] ? clean(values[6]) : '';
+          const imageUrl = values[7] ? clean(values[7]) : '';
 
           if (!name || isNaN(sellingPrice)) {
             errorCount++;
@@ -170,6 +184,7 @@ const Products: React.FC = () => {
 
           await addDoc(collection(db, 'products'), {
             name,
+            barcode,
             category,
             basePrice: basePrice || sellingPrice,
             sellingPrice,
@@ -195,10 +210,10 @@ const Products: React.FC = () => {
   };
 
   const handleDownloadTemplate = () => {
-    const headers = ['Nama', 'Kategori', 'Harga Dasar', 'Harga Jual', 'Stok', 'Deskripsi', 'URL Gambar'];
+    const headers = ['Nama', 'Barcode', 'Kategori', 'Harga Dasar', 'Harga Jual', 'Stok', 'Deskripsi', 'URL Gambar'];
     const sampleData = [
-      ['"Kopi Susu GKL"', '"Minuman"', 10000, 15000, 100, '"Kopi susu spesial GKL"', '"https://picsum.photos/seed/coffee/200"'],
-      ['"Roti Bakar"', '"Makanan"', 8000, 12000, 50, '"Roti bakar coklat keju"', '"https://picsum.photos/seed/bread/200"']
+      ['"Kopi Susu GKL"', '"GKL12345678"', '"Minuman"', 10000, 15000, 100, '"Kopi susu spesial GKL"', '"https://picsum.photos/seed/coffee/200"'],
+      ['"Roti Bakar"', '"GKL87654321"', '"Makanan"', 8000, 12000, 50, '"Roti bakar coklat keju"', '"https://picsum.photos/seed/bread/200"']
     ];
 
     const csvContent = [
@@ -219,7 +234,8 @@ const Products: React.FC = () => {
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.barcode?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -290,6 +306,7 @@ const Products: React.FC = () => {
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                   <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Produk</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Barcode</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Kategori</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Harga Dasar</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Harga Jual</th>
@@ -320,6 +337,24 @@ const Products: React.FC = () => {
                           </div>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {product.barcode ? (
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                            {product.barcode}
+                          </span>
+                          <button 
+                            onClick={() => setShowBarcodeModal(product)}
+                            className="text-[9px] text-primary font-bold hover:underline flex items-center gap-1"
+                          >
+                            <BarcodeIcon className="w-3 h-3" />
+                            Lihat Barcode
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-gray-300 italic">No Barcode</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-[10px] font-bold px-2 py-1 bg-primary/10 text-primary rounded uppercase tracking-wider">
@@ -392,6 +427,30 @@ const Products: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Barcode</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <BarcodeIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input
+                        type="text"
+                        placeholder="Scan atau masukkan barcode"
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                        value={formData.barcode}
+                        onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={generateBarcode}
+                      className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 text-xs font-bold"
+                      title="Generate Barcode Otomatis"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Generate
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Harga Dasar (Rp)</label>
@@ -482,6 +541,112 @@ const Products: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Barcode View Modal */}
+      {showBarcodeModal && (
+        <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h2 className="text-lg font-bold text-gray-900">Barcode Produk</h2>
+              <button onClick={() => setShowBarcodeModal(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-8 flex flex-col items-center gap-6">
+              <div ref={printRef} className="bg-white p-6 rounded-lg border border-gray-100 flex flex-col items-center gap-4">
+                <p className="text-sm font-bold text-gray-900">{showBarcodeModal.name}</p>
+                
+                <div className="flex flex-col items-center gap-6">
+                  <div className="flex flex-col items-center">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Barcode</p>
+                    <Barcode 
+                      value={showBarcodeModal.barcode || ''} 
+                      width={1.5} 
+                      height={60} 
+                      fontSize={12}
+                      background="#ffffff"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col items-center">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">QR Code</p>
+                    <QRCodeSVG 
+                      value={showBarcodeModal.barcode || ''} 
+                      size={120}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
+                </div>
+
+                <p className="text-xs font-bold text-primary mt-2">Rp {showBarcodeModal.sellingPrice.toLocaleString()}</p>
+              </div>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => {
+                    const printContent = printRef.current;
+                    const windowUrl = 'about:blank';
+                    const uniqueName = new Date();
+                    const windowName = 'Print' + uniqueName.getTime();
+                    const printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=0,height=0');
+                    if (printWindow && printContent) {
+                      const barcodeSvg = printContent.querySelector('svg[id^="barcode"]')?.outerHTML || printContent.querySelector('svg')?.outerHTML;
+                      const qrSvg = printContent.querySelector('svg:not([id^="barcode"])')?.outerHTML;
+                      
+                      printWindow.document.write(`
+                        <html>
+                          <head>
+                            <title>Print Barcode & QR</title>
+                            <style>
+                              body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
+                              .container { text-align: center; border: 1px solid #eee; padding: 30px; border-radius: 12px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
+                              .name { font-weight: bold; margin-bottom: 5px; font-size: 18px; }
+                              .price { font-weight: bold; color: #F27D26; font-size: 20px; }
+                              .label { font-size: 10px; color: #999; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
+                              .section { display: flex; flex-direction: column; align-items: center; }
+                            </style>
+                          </head>
+                          <body>
+                            <div class="container">
+                              <div class="name">${showBarcodeModal.name}</div>
+                              
+                              <div class="section">
+                                <div class="label">Barcode</div>
+                                ${barcodeSvg}
+                              </div>
+                              
+                              <div class="section">
+                                <div class="label">QR Code</div>
+                                ${qrSvg}
+                              </div>
+
+                              <div class="price">Rp ${showBarcodeModal.sellingPrice.toLocaleString()}</div>
+                            </div>
+                            <script>
+                              window.onload = function() { window.print(); window.close(); }
+                            </script>
+                          </body>
+                        </html>
+                      `);
+                      printWindow.document.close();
+                      printWindow.focus();
+                    }
+                  }}
+                  className="flex-1 btn-primary flex items-center justify-center gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  Cetak
+                </button>
+                <button
+                  onClick={() => setShowBarcodeModal(null)}
+                  className="flex-1 btn-outline"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
