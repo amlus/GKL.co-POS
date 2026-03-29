@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { db, collection, onSnapshot, query, where, addDoc, updateDoc, doc, Timestamp, handleFirestoreError, OperationType } from '../firebase';
 import { Product, Transaction, TransactionItem, PaymentMethod } from '../types';
 import { useAuth } from '../components/AuthContext';
-import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Receipt, CreditCard, Wallet, Banknote, X, Package, Barcode, QrCode } from 'lucide-react';
+import { Search, ShoppingCart, Trash2, Plus, Minus, CheckCircle2, Receipt, CreditCard, Wallet, Banknote, X, Package, Barcode, QrCode, Layers } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
@@ -238,36 +238,92 @@ const POS: React.FC = () => {
           </button>
         </form>
 
-        <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 content-start pb-20 lg:pb-0">
+        <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 content-start pb-24 lg:pb-0">
           {filteredProducts.map((product) => (
-            <button
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               key={product.id}
-              onClick={() => handleProductClick(product)}
-              className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md hover:border-primary transition-all text-left flex flex-col group relative overflow-hidden"
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 flex flex-col group relative overflow-hidden"
             >
-              <div className="aspect-square bg-gray-50 rounded-lg mb-3 overflow-hidden">
+              {/* Product Image Section */}
+              <div className="aspect-square bg-gray-50 relative overflow-hidden">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" referrerPolicy="no-referrer" />
+                  <img 
+                    src={product.imageUrl} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    referrerPolicy="no-referrer" 
+                  />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300">
-                    <Package className="w-10 h-10" />
+                  <div className="w-full h-full flex items-center justify-center text-gray-200">
+                    <Package className="w-12 h-12" />
+                  </div>
+                )}
+                
+                {/* Dynamic Overlay Button */}
+                <div className="absolute inset-0 bg-dark/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center p-4">
+                  <button
+                    onClick={() => handleProductClick(product)}
+                    className="w-full bg-white text-dark py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-2 hover:bg-primary hover:text-white"
+                  >
+                    {product.colors && product.colors.length > 0 ? (
+                      <>
+                        <Layers className="w-4 h-4" />
+                        Pilih Varian
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        Tambah
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Stock Badge */}
+                <div className={cn(
+                  "absolute top-3 right-3 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-sm backdrop-blur-md",
+                  product.stock < 10 ? "bg-warning/90 text-white" : "bg-white/90 text-gray-600"
+                )}>
+                  {product.stock} Tersedia
+                </div>
+
+                {/* Barcode Badge */}
+                {product.barcode && (
+                  <div className="absolute top-3 left-3 bg-dark/60 text-white px-2 py-1 rounded-lg text-[9px] font-mono backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                    {product.barcode}
                   </div>
                 )}
               </div>
-              <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-1">{product.category || 'Umum'}</p>
-              <h3 className="font-bold text-gray-900 truncate mb-1 text-sm">{product.name}</h3>
-              <div className="flex items-center justify-between mt-auto">
-                <p className="text-base font-black text-gray-900">Rp {product.price.toLocaleString()}</p>
-                <p className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", product.stock < 10 ? "bg-warning/10 text-warning" : "bg-success/10 text-success")}>
-                  Sisa {product.stock}
-                </p>
-              </div>
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="bg-primary text-white p-2 rounded-lg shadow-lg">
-                  <Plus className="w-4 h-4" />
+
+              {/* Product Info Section */}
+              <div className="p-4 flex flex-col flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] text-primary font-black uppercase tracking-widest bg-primary/5 px-2 py-0.5 rounded-md">
+                    {product.category || 'Umum'}
+                  </span>
+                </div>
+                <h3 className="font-bold text-gray-900 text-sm mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                  {product.name}
+                </h3>
+                <div className="mt-auto pt-2 border-t border-gray-50 flex items-end justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Harga</span>
+                    <span className="text-base font-black text-gray-900">
+                      Rp {product.price.toLocaleString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleProductClick(product)}
+                    className="lg:hidden w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-transform"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
-            </button>
+            </motion.div>
           ))}
         </div>
       </div>

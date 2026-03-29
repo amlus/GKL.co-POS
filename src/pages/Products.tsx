@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
-import { Plus, Search, Edit2, Trash2, Package, X, Save, Image as ImageIcon, Download, Upload, FileSpreadsheet, Barcode as BarcodeIcon, Printer, RefreshCw } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, X, Save, Image as ImageIcon, Download, Upload, FileSpreadsheet, Barcode as BarcodeIcon, Printer, RefreshCw, CheckSquare, Square, Settings2 } from 'lucide-react';
 import Barcode from 'react-barcode';
 import { QRCodeSVG } from 'qrcode.react';
 import { clsx, type ClassValue } from 'clsx';
@@ -30,6 +30,19 @@ const Products: React.FC = () => {
   });
   const [showBarcodeModal, setShowBarcodeModal] = useState<Product | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState({
+    category: '',
+    priceAdjustment: 0,
+    priceType: 'fixed' as 'fixed' | 'percentage',
+    stockUpdate: 0,
+    stockType: 'fixed' as 'fixed' | 'add',
+    updateCategory: false,
+    updatePrice: false,
+    updateStock: false
+  });
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -108,6 +121,174 @@ const Products: React.FC = () => {
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, 'products');
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) return;
+    
+    try {
+      for (const id of selectedProducts) {
+        await deleteDoc(doc(db, 'products', id));
+      }
+      setSelectedProducts([]);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'products');
+    }
+  };
+
+  const handleBulkUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedProducts.length === 0) return;
+
+    try {
+      for (const id of selectedProducts) {
+        const product = products.find(p => p.id === id);
+        if (!product) continue;
+
+        const updates: any = { updatedAt: Timestamp.now() };
+
+        if (bulkFormData.updateCategory) {
+          updates.category = bulkFormData.category;
+        }
+
+        if (bulkFormData.updatePrice) {
+          let newPrice = product.sellingPrice;
+          if (bulkFormData.priceType === 'fixed') {
+            newPrice = bulkFormData.priceAdjustment;
+          } else {
+            newPrice = product.sellingPrice + (product.sellingPrice * (bulkFormData.priceAdjustment / 100));
+          }
+          updates.sellingPrice = newPrice;
+          updates.price = newPrice;
+        }
+
+        if (bulkFormData.updateStock) {
+          if (bulkFormData.stockType === 'fixed') {
+            updates.stock = bulkFormData.stockUpdate;
+          } else {
+            updates.stock = product.stock + bulkFormData.stockUpdate;
+          }
+        }
+
+        await updateDoc(doc(db, 'products', id), updates);
+      }
+      setIsBulkModalOpen(false);
+      setSelectedProducts([]);
+      setBulkFormData({
+        category: '',
+        priceAdjustment: 0,
+        priceType: 'fixed',
+        stockUpdate: 0,
+        stockType: 'fixed',
+        updateCategory: false,
+        updatePrice: false,
+        updateStock: false
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'products');
+    }
+  };
+
+  const handleBulkPrint = () => {
+    if (selectedProducts.length === 0) return;
+    
+    const selectedData = products.filter(p => selectedProducts.includes(p.id));
+    const windowUrl = 'about:blank';
+    const uniqueName = new Date();
+    const windowName = 'PrintBulk' + uniqueName.getTime();
+    const printWindow = window.open(windowUrl, windowName, 'width=800,height=600');
+    
+    if (printWindow) {
+      const itemsHtml = selectedData.map(product => {
+        return `
+          <div class="item">
+            <div class="name">${product.name}</div>
+            <div class="barcode-container">
+              <svg id="barcode-${product.id}"></svg>
+            </div>
+            <div class="price">Rp ${product.sellingPrice.toLocaleString()}</div>
+          </div>
+        `;
+      }).join('');
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Cetak Barcode Produk</title>
+            <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+            <style>
+              body { font-family: sans-serif; padding: 20px; margin: 0; }
+              .grid { 
+                display: grid; 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 15px; 
+              }
+              .item { 
+                border: 1px solid #eee; 
+                padding: 10px; 
+                border-radius: 8px; 
+                text-align: center; 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: center;
+                gap: 5px; 
+                page-break-inside: avoid;
+                min-height: 120px;
+              }
+              .name { font-weight: bold; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+              .price { font-weight: bold; color: #F27D26; font-size: 12px; }
+              .barcode-container { transform: scale(0.9); }
+              @media print {
+                body { padding: 0; }
+                .grid { gap: 10px; }
+                .item { border: 1px solid #ddd; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="grid">
+              ${itemsHtml}
+            </div>
+            <script>
+              window.onload = function() {
+                ${selectedData.map(p => `
+                  if ("${p.barcode || ''}") {
+                    JsBarcode("#barcode-${p.id}", "${p.barcode || ''}", {
+                      width: 1.2,
+                      height: 40,
+                      displayValue: true,
+                      fontSize: 10,
+                      margin: 0
+                    });
+                  }
+                `).join('\n')}
+                setTimeout(() => {
+                  window.print();
+                  window.close();
+                }, 500);
+              }
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProducts.length === filteredProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    }
+  };
+
+  const toggleSelectProduct = (id: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
+    );
   };
 
   const handleExportCSV = () => {
@@ -246,6 +427,39 @@ const Products: React.FC = () => {
           <p className="text-gray-500 mt-1 text-sm lg:text-base">Kelola inventaris produk Anda dengan mudah.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {selectedProducts.length > 0 && (
+            <div className="flex items-center gap-2 mr-4 bg-primary/5 px-4 py-2 rounded-xl border border-primary/10 animate-in fade-in slide-in-from-right duration-300">
+              <span className="text-sm font-bold text-primary">{selectedProducts.length} Terpilih</span>
+              <div className="h-4 w-px bg-primary/20 mx-2" />
+              <button
+                onClick={() => setIsBulkModalOpen(true)}
+                className="text-sm font-bold text-primary hover:underline flex items-center gap-1"
+              >
+                <Settings2 className="w-4 h-4" />
+                Edit Massal
+              </button>
+              <button
+                onClick={handleBulkPrint}
+                className="text-sm font-bold text-primary hover:underline flex items-center gap-1 ml-2"
+              >
+                <Printer className="w-4 h-4" />
+                Cetak Barcode
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="text-sm font-bold text-danger hover:underline flex items-center gap-1 ml-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Hapus
+              </button>
+              <button
+                onClick={() => setSelectedProducts([])}
+                className="p-1 hover:bg-primary/10 rounded-full transition-colors ml-2"
+              >
+                <X className="w-4 h-4 text-primary" />
+              </button>
+            </div>
+          )}
           <button
             onClick={handleDownloadTemplate}
             className="btn-outline flex items-center gap-2"
@@ -305,6 +519,18 @@ const Products: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-4 w-10">
+                    <button 
+                      onClick={toggleSelectAll}
+                      className="text-gray-400 hover:text-primary transition-colors"
+                    >
+                      {selectedProducts.length === filteredProducts.length && filteredProducts.length > 0 ? (
+                        <CheckSquare className="w-5 h-5 text-primary" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                  </th>
                   <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Produk</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Barcode</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Kategori</th>
@@ -316,7 +542,22 @@ const Products: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50/30 transition-colors group">
+                  <tr key={product.id} className={cn(
+                    "hover:bg-gray-50/30 transition-colors group",
+                    selectedProducts.includes(product.id) && "bg-primary/5"
+                  )}>
+                    <td className="px-6 py-4">
+                      <button 
+                        onClick={() => toggleSelectProduct(product.id)}
+                        className="text-gray-300 hover:text-primary transition-colors"
+                      >
+                        {selectedProducts.includes(product.id) ? (
+                          <CheckSquare className="w-5 h-5 text-primary" />
+                        ) : (
+                          <Square className="w-5 h-5" />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
@@ -544,6 +785,127 @@ const Products: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Bulk Edit Modal */}
+      {isBulkModalOpen && (
+        <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h2 className="text-lg font-bold text-gray-900">Edit Massal ({selectedProducts.length} Produk)</h2>
+              <button onClick={() => setIsBulkModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleBulkUpdate} className="p-6 space-y-6">
+              {/* Category Update */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="updateCategory"
+                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                    checked={bulkFormData.updateCategory}
+                    onChange={(e) => setBulkFormData({ ...bulkFormData, updateCategory: e.target.checked })}
+                  />
+                  <label htmlFor="updateCategory" className="text-sm font-bold text-gray-700">Update Kategori</label>
+                </div>
+                {bulkFormData.updateCategory && (
+                  <input
+                    type="text"
+                    placeholder="Masukkan kategori baru"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    value={bulkFormData.category}
+                    onChange={(e) => setBulkFormData({ ...bulkFormData, category: e.target.value })}
+                  />
+                )}
+              </div>
+
+              {/* Price Update */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="updatePrice"
+                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                    checked={bulkFormData.updatePrice}
+                    onChange={(e) => setBulkFormData({ ...bulkFormData, updatePrice: e.target.checked })}
+                  />
+                  <label htmlFor="updatePrice" className="text-sm font-bold text-gray-700">Update Harga Jual</label>
+                </div>
+                {bulkFormData.updatePrice && (
+                  <div className="flex gap-2">
+                    <select
+                      className="px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      value={bulkFormData.priceType}
+                      onChange={(e) => setBulkFormData({ ...bulkFormData, priceType: e.target.value as any })}
+                    >
+                      <option value="fixed">Harga Tetap (Rp)</option>
+                      <option value="percentage">Penyesuaian (%)</option>
+                    </select>
+                    <input
+                      type="number"
+                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      value={bulkFormData.priceAdjustment}
+                      onChange={(e) => setBulkFormData({ ...bulkFormData, priceAdjustment: Number(e.target.value) })}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Stock Update */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="updateStock"
+                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                    checked={bulkFormData.updateStock}
+                    onChange={(e) => setBulkFormData({ ...bulkFormData, updateStock: e.target.checked })}
+                  />
+                  <label htmlFor="updateStock" className="text-sm font-bold text-gray-700">Update Stok</label>
+                </div>
+                {bulkFormData.updateStock && (
+                  <div className="flex gap-2">
+                    <select
+                      className="px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      value={bulkFormData.stockType}
+                      onChange={(e) => setBulkFormData({ ...bulkFormData, stockType: e.target.value as any })}
+                    >
+                      <option value="fixed">Set Stok Tetap</option>
+                      <option value="add">Tambah/Kurang Stok</option>
+                    </select>
+                    <input
+                      type="number"
+                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      value={bulkFormData.stockUpdate}
+                      onChange={(e) => setBulkFormData({ ...bulkFormData, stockUpdate: Number(e.target.value) })}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsBulkModalOpen(false)}
+                  className="flex-1 px-6 py-2.5 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition-all text-sm"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={!bulkFormData.updateCategory && !bulkFormData.updatePrice && !bulkFormData.updateStock}
+                  className="flex-1 px-6 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  Terapkan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Barcode View Modal */}
       {showBarcodeModal && (
         <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
