@@ -1,0 +1,97 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A product available for sale in the POS system.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "stock": { "type": "number" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "colors": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "stock"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A sales transaction record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "name": { "type": "string" },
+              "price": { "type": "number" },
+              "quantity": { "type": "number" },
+              "subtotal": { "type": "number" }
+            }
+          }
+        },
+        "totalAmount": { "type": "number" },
+        "discount": { "type": "number" },
+        "finalAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["Cash", "QRIS", "E-Wallet"] },
+        "cashierId": { "type": "string" },
+        "cashierName": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["items", "totalAmount", "finalAmount", "paymentMethod", "timestamp"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the POS system (Admin or Cashier).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "cashier"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    },
+    "StockLog": {
+      "title": "Stock Log",
+      "description": "A log of stock changes for a product.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "changeAmount": { "type": "number" },
+        "type": { "type": "string", "enum": ["sale", "restock", "adjustment"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["productId", "changeAmount", "type", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of products."
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Collection of sales transactions."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles and roles."
+    },
+    "/stockLogs/{logId}": {
+      "schema": "StockLog",
+      "description": "Collection of stock change logs."
+    }
+  }
+}

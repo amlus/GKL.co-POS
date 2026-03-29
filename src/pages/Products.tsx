@@ -1,0 +1,491 @@
+import React, { useState, useEffect } from 'react';
+import { db, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, handleFirestoreError, OperationType } from '../firebase';
+import { Product } from '../types';
+import { Plus, Search, Edit2, Trash2, Package, X, Save, Image as ImageIcon, Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+const Products: React.FC = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    price: 0,
+    basePrice: 0,
+    sellingPrice: 0,
+    stock: 0,
+    category: '',
+    description: '',
+    imageUrl: '',
+    colors: ''
+  });
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
+      const data = snapshot.docs.map(doc => {
+        const d = doc.data();
+        return { 
+          id: doc.id, 
+          ...d,
+          // Ensure basePrice and sellingPrice exist for older records
+          basePrice: d.basePrice || d.price || 0,
+          sellingPrice: d.sellingPrice || d.price || 0
+        } as Product;
+      });
+      setProducts(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleOpenModal = (product?: Product) => {
+    if (product) {
+      setEditingProduct(product);
+      setFormData({
+        name: product.name,
+        price: product.price,
+        basePrice: product.basePrice || product.price,
+        sellingPrice: product.sellingPrice || product.price,
+        stock: product.stock,
+        category: product.category || '',
+        description: product.description || '',
+        imageUrl: product.imageUrl || '',
+        colors: product.colors?.join(', ') || ''
+      });
+    } else {
+      setEditingProduct(null);
+      setFormData({ name: '', price: 0, basePrice: 0, sellingPrice: 0, stock: 0, category: '', description: '', imageUrl: '', colors: '' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const dataToSave = {
+        ...formData,
+        colors: formData.colors.split(',').map(c => c.trim()).filter(c => c !== ''),
+        // Ensure price is always the same as sellingPrice for POS compatibility
+        price: formData.sellingPrice,
+        updatedAt: Timestamp.now()
+      };
+
+      if (editingProduct) {
+        await updateDoc(doc(db, 'products', editingProduct.id), dataToSave);
+      } else {
+        await addDoc(collection(db, 'products'), {
+          ...dataToSave,
+          createdAt: Timestamp.now()
+        });
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      handleFirestoreError(error, editingProduct ? OperationType.UPDATE : OperationType.CREATE, 'products');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    try {
+      await deleteDoc(doc(db, 'products', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'products');
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (products.length === 0) {
+      alert('Tidak ada data untuk diekspor');
+      return;
+    }
+
+    const headers = ['Nama', 'Kategori', 'Harga Dasar', 'Harga Jual', 'Stok', 'Deskripsi', 'URL Gambar'];
+    const rows = products.map(p => [
+      `"${p.name}"`,
+      `"${p.category || ''}"`,
+      p.basePrice || p.price,
+      p.sellingPrice || p.price,
+      p.stock,
+      `"${p.description || ''}"`,
+      `"${p.imageUrl || ''}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Daftar_Produk_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split('\n');
+      const headers = lines[0].split(',');
+      const dataRows = lines.slice(1).filter(line => line.trim() !== '');
+
+      let importedCount = 0;
+      let errorCount = 0;
+
+      for (const row of dataRows) {
+        try {
+          // Simple CSV parser that handles quotes
+          const values = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+          if (!values || values.length < 5) continue;
+
+          const clean = (val: string) => val.replace(/^"|"$/g, '').trim();
+
+          const name = clean(values[0]);
+          const category = clean(values[1]);
+          const basePrice = Number(clean(values[2]));
+          const sellingPrice = Number(clean(values[3]));
+          const stock = Number(clean(values[4]));
+          const description = values[5] ? clean(values[5]) : '';
+          const imageUrl = values[6] ? clean(values[6]) : '';
+
+          if (!name || isNaN(sellingPrice)) {
+            errorCount++;
+            continue;
+          }
+
+          await addDoc(collection(db, 'products'), {
+            name,
+            category,
+            basePrice: basePrice || sellingPrice,
+            sellingPrice,
+            price: sellingPrice,
+            stock,
+            description,
+            imageUrl,
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now()
+          });
+          importedCount++;
+        } catch (err) {
+          console.error('Error importing row:', row, err);
+          errorCount++;
+        }
+      }
+
+      alert(`Import selesai! Berhasil: ${importedCount}, Gagal: ${errorCount}`);
+      // Reset input
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDownloadTemplate = () => {
+    const headers = ['Nama', 'Kategori', 'Harga Dasar', 'Harga Jual', 'Stok', 'Deskripsi', 'URL Gambar'];
+    const sampleData = [
+      ['"Kopi Susu GKL"', '"Minuman"', 10000, 15000, 100, '"Kopi susu spesial GKL"', '"https://picsum.photos/seed/coffee/200"'],
+      ['"Roti Bakar"', '"Makanan"', 8000, 12000, 50, '"Roti bakar coklat keju"', '"https://picsum.photos/seed/bread/200"']
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...sampleData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'Template_Import_Produk.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-8">
+      <header className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Manajemen Produk</h1>
+          <p className="text-gray-500 mt-1">Kelola inventaris produk Anda dengan mudah.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownloadTemplate}
+            className="btn-outline flex items-center gap-2"
+            title="Unduh Template CSV"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            Template
+          </button>
+          <input
+            type="file"
+            id="csvImport"
+            accept=".csv"
+            className="hidden"
+            onChange={handleImportCSV}
+          />
+          <button
+            onClick={() => document.getElementById('csvImport')?.click()}
+            className="btn-outline flex items-center gap-2"
+            title="Import dari CSV"
+          >
+            <Upload className="w-4 h-4" />
+            Import
+          </button>
+          <button
+            onClick={handleExportCSV}
+            className="btn-outline flex items-center gap-2"
+            title="Export ke CSV"
+          >
+            <Download className="w-4 h-4" />
+            Export
+          </button>
+          <button
+            onClick={() => handleOpenModal()}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Produk
+          </button>
+        </div>
+      </header>
+
+      <div className="card">
+        <div className="card-header">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Cari produk..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Produk</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kategori</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Harga Dasar</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Harga Jual</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stok</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredProducts.map((product) => (
+                <tr key={product.id} className="hover:bg-gray-50/30 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          <Package className="w-5 h-5 text-gray-300" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{product.name}</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {product.colors?.map((color, idx) => (
+                            <span key={idx} className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded border border-gray-200">
+                              {color}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-[11px] text-gray-400 truncate max-w-[150px] mt-1">{product.description || 'Tidak ada deskripsi'}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-[10px] font-bold px-2 py-1 bg-primary/10 text-primary rounded uppercase tracking-wider">
+                      {product.category || 'Umum'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
+                    Rp {(product.basePrice || product.price).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                    Rp {(product.sellingPrice || product.price).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("w-2 h-2 rounded-full", product.stock < 10 ? "bg-warning" : "bg-success")} />
+                      <span className={cn("text-sm font-bold", product.stock < 10 ? "text-warning" : "text-gray-900")}>
+                        {product.stock}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => handleOpenModal(product)}
+                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(product.id)}
+                        className="p-2 text-gray-400 hover:text-danger hover:bg-danger/5 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-20">
+              <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+              <p className="text-gray-400 text-sm">Produk tidak ditemukan.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Product Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h2 className="text-lg font-bold text-gray-900">{editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nama Produk</label>
+                  <input
+                    required
+                    type="text"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Harga Dasar (Rp)</label>
+                  <input
+                    required
+                    type="number"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    value={formData.basePrice}
+                    onChange={(e) => setFormData({ ...formData, basePrice: Number(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Harga Jual (Rp)</label>
+                  <input
+                    required
+                    type="number"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    value={formData.sellingPrice}
+                    onChange={(e) => setFormData({ ...formData, sellingPrice: Number(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Stok Awal</label>
+                  <input
+                    required
+                    type="number"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Kategori</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">URL Gambar</label>
+                  <div className="relative">
+                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="url"
+                      className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                      value={formData.imageUrl}
+                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Deskripsi</label>
+                  <textarea
+                    rows={2}
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Varian Warna (Pisahkan dengan koma)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Merah, Biru, Hijau"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                    value={formData.colors}
+                    onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 px-6 py-2.5 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition-all text-sm"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 text-sm"
+                >
+                  <Save className="w-4 h-4" />
+                  {editingProduct ? 'Perbarui Produk' : 'Simpan Produk'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Products;

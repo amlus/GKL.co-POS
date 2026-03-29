@@ -1,0 +1,146 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: products
+// Document ID: {productId}
+// Fields:
+//   - name: string (required)
+//   - price: number (required, > 0)
+//   - stock: number (required, >= 0)
+//   - category: string (optional)
+//   - description: string (optional)
+//   - imageUrl: string (optional)
+//   - createdAt: timestamp (required)
+//   - updatedAt: timestamp (required)
+//
+// Collection: transactions
+// Document ID: {transactionId}
+// Fields:
+//   - items: list (required)
+//   - totalAmount: number (required, >= 0)
+//   - discount: number (required, >= 0)
+//   - finalAmount: number (required, >= 0)
+//   - paymentMethod: string (required, enum: ['Cash', 'QRIS', 'E-Wallet'])
+//   - cashierId: string (required)
+//   - cashierName: string (required)
+//   - timestamp: timestamp (required)
+//
+// Collection: users
+// Document ID: {userId} (can be UID or random ID)
+// Fields:
+//   - uid: string (optional, populated on first login)
+//   - name: string (required)
+//   - email: string (required)
+//   - role: string (required, enum: ['admin', 'cashier'])
+//   - createdAt: timestamp (required)
+//
+// Collection: stockLogs
+// Document ID: {logId}
+// Fields:
+//   - productId: string (required)
+//   - productName: string (required)
+//   - changeAmount: number (required)
+//   - type: string (required, enum: ['sale', 'restock', 'adjustment'])
+//   - timestamp: timestamp (required)
+//   - userId: string (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "alusyana85@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isCashier() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'cashier' || isAdmin());
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidProduct(data) {
+      return hasRequiredFields(['name', 'price', 'stock']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.price is number && data.price > 0 &&
+             data.stock is number && data.stock >= 0;
+    }
+
+    function isValidTransaction(data) {
+      return hasRequiredFields(['items', 'totalAmount', 'finalAmount', 'paymentMethod', 'timestamp']) &&
+             data.items is list && data.items.size() > 0 &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.finalAmount is number && data.finalAmount >= 0 &&
+             data.paymentMethod in ['Cash', 'QRIS', 'E-Wallet'];
+    }
+
+    function isValidUser(data) {
+      return hasRequiredFields(['name', 'email', 'role']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.email is string && data.email.size() > 0 &&
+             data.role in ['admin', 'cashier'];
+    }
+
+    function isValidStockLog(data) {
+      return hasRequiredFields(['productId', 'changeAmount', 'type', 'timestamp']) &&
+             data.productId is string &&
+             data.changeAmount is number &&
+             data.type in ['sale', 'restock', 'adjustment'];
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin() && isValidProduct(request.resource.data);
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isCashier();
+      allow create: if isCashier() && isValidTransaction(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if (isAuthenticated() && isValidUser(request.resource.data) && (request.resource.data.role == 'cashier' || isAdmin())) || isAdmin();
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role && isValidUser(request.resource.data)) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /stockLogs/{logId} {
+      allow read: if isCashier();
+      allow create: if isCashier() && isValidStockLog(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+  }
+}

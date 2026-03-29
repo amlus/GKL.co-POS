@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #4680ff;
+  --color-success: #11c15b;
+  --color-danger: #ff5252;
+  --color-warning: #ffa21d;
+  --color-info: #00bcd4;
+  --color-dark: #3f4d67;
+  --color-background: #f4f7fa;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-gray-700 font-sans;
+  }
+}
+
+.pc-sidebar {
+  @apply bg-[#3f4d67] text-white w-64 fixed h-full transition-all duration-300 z-50 shadow-xl;
+}
+
+.pc-sidebar .nav-link {
+  @apply flex items-center gap-3 px-6 py-3 text-[#a9b1c0] hover:text-white hover:bg-white/5 transition-all relative;
+}
+
+.pc-sidebar .nav-link.active {
+  @apply text-white bg-[#333f54] border-l-[3px] border-primary;
+}
+
+.pc-sidebar .nav-link.active::before {
+  content: '';
+  @apply absolute left-0 top-0 bottom-0 w-[3px] bg-primary shadow-[0_0_10px_rgba(70,128,255,0.5)];
+}
+
+.pc-header {
+  @apply bg-white h-16 fixed right-0 top-0 left-64 flex items-center px-6 shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] z-40 transition-all duration-300;
+}
+
+.pc-container {
+  @apply pt-20 pl-64 transition-all duration-300 min-h-screen bg-[#f4f7fa];
+}
+
+.card {
+  @apply bg-white rounded-lg shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] border-none mb-6 overflow-hidden;
+}
+
+.card-header {
+  @apply px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white;
+}
+
+.card-header h5, .card-header h2 {
+  @apply text-sm font-bold text-gray-800 uppercase tracking-wider;
+}
+
+.card-body {
+  @apply p-6;
+}
+
+.btn-primary {
+  @apply bg-primary text-white px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition-all shadow-lg shadow-primary/20;
+}
+
+.btn-outline {
+  @apply border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-gray-50 transition-all;
+}
+
+@media print {
+  body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+
+  .printable-receipt {
+    visibility: visible !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important; /* Standard thermal receipt width */
+    padding: 10mm !important;
+    background: white !important;
+    z-index: 9999 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 12px !important;
+    color: black !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Hide everything else */
+  body > *:not(.printable-receipt) {
+    display: none !important;
+  }
+  
+  #root > *:not(.printable-receipt) {
+    display: none !important;
+  }
+
+  /* Ensure the modal background is hidden */
+  .fixed.inset-0 {
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+}
