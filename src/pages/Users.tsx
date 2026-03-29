@@ -83,14 +83,14 @@ const Users: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manajemen Akun</h1>
-          <p className="text-gray-500 mt-1">Kelola akses admin dan kasir secara manual.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Manajemen Akun</h1>
+          <p className="text-gray-500 mt-1 text-sm lg:text-base">Kelola akses admin dan kasir secara manual.</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center justify-center gap-2 w-full lg:w-auto"
         >
           <Plus className="w-4 h-4" />
           Tambah Akun
@@ -99,7 +99,7 @@ const Users: React.FC = () => {
 
       <div className="card">
         <div className="card-header">
-          <div className="relative w-full max-w-md">
+          <div className="relative w-full lg:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
@@ -110,22 +110,23 @@ const Users: React.FC = () => {
             />
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto -mx-4 lg:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nama & Email</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Peran</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Aksi</th>
-              </tr>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Nama & Email</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Peran</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Aksi</th>
+                </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filteredUsers.map((user) => (
                 <tr key={(user as any).id} className="hover:bg-gray-50/30 transition-colors group">
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm shrink-0">
                         <UserCircle className="w-6 h-6 text-gray-300" />
                       </div>
                       <div>
@@ -134,7 +135,7 @@ const Users: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={cn(
                       "text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider",
                       user.role === 'admin' ? "bg-primary/10 text-primary" : "bg-success/10 text-success"
@@ -142,7 +143,7 @@ const Users: React.FC = () => {
                       {user.role}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <div className={cn("w-2 h-2 rounded-full", user.uid ? "bg-success" : "bg-warning")} />
                       <span className="text-xs font-bold text-gray-600">
@@ -150,8 +151,8 @@ const Users: React.FC = () => {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => handleOpenModal(user as any)}
                         className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
@@ -178,6 +179,7 @@ const Users: React.FC = () => {
           )}
         </div>
       </div>
+    </div>
 
       {/* User Modal */}
       {isModalOpen && (

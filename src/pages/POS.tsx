@@ -23,6 +23,7 @@ const POS: React.FC = () => {
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null);
   const [selectingProduct, setSelectingProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('');
+  const [showCartMobile, setShowCartMobile] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'products'), (snapshot) => {
@@ -144,21 +145,24 @@ const POS: React.FC = () => {
   };
 
   return (
-    <div className="flex gap-8 h-[calc(100vh-160px)]">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 h-auto lg:h-[calc(100vh-160px)]">
       {/* Product Selection */}
-      <div className="flex-1 flex flex-col gap-6 min-w-0">
+      <div className={cn(
+        "flex-1 flex flex-col gap-4 lg:gap-6 min-w-0",
+        showCartMobile && "hidden lg:flex"
+      )}>
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Cari produk berdasarkan nama atau kategori..."
-            className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
+            placeholder="Cari produk..."
+            className="w-full pl-12 pr-4 py-3 lg:py-4 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-sm lg:text-base"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 content-start">
+        <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 content-start pb-20 lg:pb-0">
           {filteredProducts.map((product) => (
             <button
               key={product.id}
@@ -193,18 +197,27 @@ const POS: React.FC = () => {
       </div>
 
       {/* Cart & Checkout */}
-      <div className="w-96 bg-white border border-gray-100 rounded-lg shadow-xl flex flex-col overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+      <div className={cn(
+        "w-full lg:w-96 bg-white border border-gray-100 rounded-lg shadow-xl flex flex-col overflow-hidden",
+        !showCartMobile && "hidden lg:flex"
+      )}>
+        <div className="p-4 lg:p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowCartMobile(false)}
+              className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <ShoppingCart className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold text-gray-900">Pesanan Saat Ini</h2>
+            <h2 className="text-base lg:text-lg font-bold text-gray-900">Pesanan Saat Ini</h2>
           </div>
           <span className="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
             {cart.reduce((sum, i) => sum + i.quantity, 0)} item
           </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4">
           {cart.map((item, idx) => (
             <div key={`${item.productId}-${item.selectedColor || 'none'}-${idx}`} className="flex items-center gap-4 group">
               <div className="flex-1 min-w-0">
@@ -247,7 +260,7 @@ const POS: React.FC = () => {
           )}
         </div>
 
-        <div className="p-6 bg-gray-50 border-t border-gray-100 space-y-4">
+        <div className="p-4 lg:p-6 bg-gray-50 border-t border-gray-100 space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
               <span>Subtotal</span>
@@ -296,7 +309,7 @@ const POS: React.FC = () => {
           <button
             disabled={cart.length === 0 || isCheckingOut}
             onClick={handleCheckout}
-            className="w-full bg-primary text-white py-4 rounded-lg font-bold text-lg shadow-xl shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+            className="w-full bg-primary text-white py-3 lg:py-4 rounded-lg font-bold text-base lg:text-lg shadow-xl shadow-primary/20 hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
           >
             {isCheckingOut ? (
               <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -309,6 +322,27 @@ const POS: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Mobile Cart Toggle */}
+      {!showCartMobile && cart.length > 0 && (
+        <div className="fixed bottom-6 left-6 right-6 lg:hidden z-40">
+          <button
+            onClick={() => setShowCartMobile(true)}
+            className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-2xl shadow-primary/40 flex items-center justify-between px-6 animate-in slide-in-from-bottom duration-300"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <ShoppingCart className="w-6 h-6" />
+                <span className="absolute -top-2 -right-2 bg-white text-primary text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-primary">
+                  {cart.reduce((sum, i) => sum + i.quantity, 0)}
+                </span>
+              </div>
+              <span className="text-sm uppercase tracking-widest">Lihat Keranjang</span>
+            </div>
+            <span className="text-lg font-black">Rp {total.toLocaleString()}</span>
+          </button>
+        </div>
+      )}
 
       {/* Receipt Modal */}
       {showReceipt && lastTransaction && (

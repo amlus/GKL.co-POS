@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { LayoutDashboard, ShoppingCart, Package, History, BarChart3, LogOut, User, Settings, Menu, Bell, Search, ChevronDown } from 'lucide-react';
@@ -13,7 +13,25 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { profile, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (window.innerWidth <= 1024) {
+      setIsSidebarOpen(false);
+    }
+  }, [location.pathname]);
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['admin', 'cashier'] },
@@ -35,7 +53,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Sidebar */}
       <aside className={cn(
         "pc-sidebar",
-        !isSidebarOpen && "-translate-x-full"
+        isSidebarOpen ? "open" : ""
       )}>
         <div className="h-16 flex items-center px-6 border-b border-white/5 bg-[#333f54]">
           <h1 className="text-xl font-black tracking-tighter text-white flex items-center gap-2">
@@ -70,10 +88,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </aside>
 
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && window.innerWidth <= 1024 && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Header */}
       <header className={cn(
         "pc-header",
-        !isSidebarOpen && "left-0"
+        isSidebarOpen && window.innerWidth > 1024 ? "lg:left-64" : "left-0"
       )}>
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -122,8 +148,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Main Content */}
       <main className={cn(
-        "pc-container p-6",
-        !isSidebarOpen && "pl-6"
+        "pc-container p-4 lg:p-6",
+        isSidebarOpen && window.innerWidth > 1024 ? "lg:pl-64" : "pl-0"
       )}>
         <div className="max-w-[1600px] mx-auto">
           {children}

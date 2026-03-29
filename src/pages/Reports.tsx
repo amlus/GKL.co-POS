@@ -148,18 +148,18 @@ const Reports: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Laporan Penjualan</h1>
-          <p className="text-gray-500 mt-1">Analisis kinerja bisnis Anda dari waktu ke waktu.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Laporan Penjualan</h1>
+          <p className="text-gray-500 mt-1 text-sm lg:text-base">Analisis kinerja bisnis Anda dari waktu ke waktu.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-white border border-gray-100 rounded-lg p-1 flex gap-1 shadow-sm">
+        <div className="flex items-center gap-3 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+          <div className="bg-white border border-gray-100 rounded-lg p-1 flex gap-1 shadow-sm shrink-0">
             {(['day', 'week', 'month'] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setTimeRange(r)}
-                className={`px-4 py-1.5 rounded-md text-xs font-bold capitalize transition-all ${
+                className={`px-4 py-1.5 rounded-md text-xs font-bold capitalize transition-all whitespace-nowrap ${
                   timeRange === r ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
@@ -169,7 +169,7 @@ const Reports: React.FC = () => {
           </div>
           <button 
             onClick={exportToCSV}
-            className="p-2.5 bg-white border border-gray-100 rounded-lg text-gray-600 hover:bg-gray-50 shadow-sm transition-all"
+            className="p-2.5 bg-white border border-gray-100 rounded-lg text-gray-600 hover:bg-gray-50 shadow-sm transition-all shrink-0"
             title="Ekspor CSV"
           >
             <Download className="w-5 h-5" />
@@ -220,32 +220,34 @@ const Reports: React.FC = () => {
             <h2 className="text-lg font-bold text-gray-900">Penjualan Berdasarkan Kategori</h2>
           </div>
           <div className="card-body">
-            <div className="h-80 flex items-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
-                    formatter={(value: number) => `Rp ${value.toLocaleString()}`}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="w-48 space-y-3">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="h-64 md:h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                      formatter={(value: number) => `Rp ${value.toLocaleString()}`}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-full md:w-48 space-y-3">
                 {categoryData.map((entry: any, index: number) => (
                   <div key={entry.name} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{backgroundColor: COLORS[index % COLORS.length]}} />
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{backgroundColor: COLORS[index % COLORS.length]}} />
                     <span className="text-xs font-medium text-gray-600 truncate flex-1">{entry.name}</span>
                     <span className="text-xs font-bold text-gray-900">{Math.round((entry.value / totalSales) * 100)}%</span>
                   </div>
@@ -263,9 +265,9 @@ const Reports: React.FC = () => {
         <div className="card-body">
           <div className="space-y-4">
             {topProducts.map((item: any, idx: number) => (
-              <div key={item.productId} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-all group border border-transparent hover:border-gray-100">
+              <div key={item.productId} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-all group border border-transparent hover:border-gray-100 gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center font-bold text-sm">
+                  <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center font-bold text-sm shrink-0">
                     {idx + 1}
                   </div>
                   <div>
@@ -273,20 +275,20 @@ const Reports: React.FC = () => {
                     <p className="text-[11px] text-gray-400 uppercase font-bold tracking-wider">{item.category}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-12">
-                  <div className="text-right">
+                <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-12">
+                  <div className="text-left sm:text-right">
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Unit</p>
                     <p className="text-sm font-bold text-gray-900">{item.sales}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Pendapatan</p>
                     <p className="text-sm font-bold text-gray-900">Rp {item.revenue.toLocaleString()}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Laba</p>
                     <p className="text-sm font-bold text-success">Rp {item.profit.toLocaleString()}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                  <ChevronRight className="hidden sm:block w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
                 </div>
               </div>
             ))}

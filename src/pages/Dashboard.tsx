@@ -61,9 +61,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold text-gray-900">Ringkasan Dashboard</h1>
-        <p className="text-gray-500 mt-1">Selamat datang kembali! Berikut adalah aktivitas hari ini.</p>
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Ringkasan Dashboard</h1>
+          <p className="text-gray-500 mt-1 text-sm lg:text-base">Selamat datang kembali! Berikut adalah aktivitas hari ini.</p>
+        </div>
       </header>
 
       {/* Low Stock Notifications */}

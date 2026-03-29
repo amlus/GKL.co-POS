@@ -48,17 +48,17 @@ const Transactions: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
-          <p className="text-gray-500 mt-1">Lihat dan kelola semua catatan penjualan.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
+          <p className="text-gray-500 mt-1 text-sm lg:text-base">Lihat dan kelola semua catatan penjualan.</p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div className="relative w-full lg:w-auto">
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="date"
-              className="pl-10 pr-4 py-2 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-sm font-bold"
+              className="w-full lg:w-auto pl-10 pr-4 py-2 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-sm font-bold"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
             />
@@ -66,7 +66,7 @@ const Transactions: React.FC = () => {
         </div>
       </header>
 
-      <div className="relative max-w-md mb-8">
+      <div className="relative w-full lg:max-w-md mb-8">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
         <input
           type="text"
@@ -78,59 +78,61 @@ const Transactions: React.FC = () => {
       </div>
 
       <div className="card">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">ID Transaksi</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kasir</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pembayaran</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Jumlah</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Detail</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredTransactions.map((t) => {
-                const Icon = getPaymentIcon(t.paymentMethod);
-                return (
-                  <tr key={t.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-6 py-4 font-mono text-xs font-bold text-gray-400">
-                      #{t.id.slice(-8).toUpperCase()}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {format(t.timestamp.toDate(), 'HH:mm:ss')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-                          {t.cashierName[0]}
+        <div className="overflow-x-auto -mx-4 lg:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">ID Transaksi</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Waktu</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Kasir</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Pembayaran</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Jumlah</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Detail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredTransactions.map((t) => {
+                  const Icon = getPaymentIcon(t.paymentMethod);
+                  return (
+                    <tr key={t.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-6 py-4 font-mono text-xs font-bold text-gray-400 whitespace-nowrap">
+                        #{t.id.slice(-8).toUpperCase()}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                        {format(t.timestamp.toDate(), 'HH:mm:ss')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                            {t.cashierName[0]}
+                          </div>
+                          <span className="text-sm font-bold text-gray-900">{t.cashierName}</span>
                         </div>
-                        <span className="text-sm font-bold text-gray-900">{t.cashierName}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4 text-gray-400" />
-                        <span className="text-[10px] font-bold uppercase text-gray-500 tracking-wider">{t.paymentMethod}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-gray-900">
-                      Rp {t.finalAmount.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => setSelectedTransaction(t)}
-                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-4 h-4 text-gray-400" />
+                          <span className="text-[10px] font-bold uppercase text-gray-500 tracking-wider">{t.paymentMethod}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
+                        Rp {t.finalAmount.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <button 
+                          onClick={() => setSelectedTransaction(t)}
+                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
         {filteredTransactions.length === 0 && (
           <div className="text-center py-20">

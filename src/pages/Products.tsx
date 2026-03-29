@@ -224,12 +224,12 @@ const Products: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manajemen Produk</h1>
-          <p className="text-gray-500 mt-1">Kelola inventaris produk Anda dengan mudah.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Manajemen Produk</h1>
+          <p className="text-gray-500 mt-1 text-sm lg:text-base">Kelola inventaris produk Anda dengan mudah.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleDownloadTemplate}
             className="btn-outline flex items-center gap-2"
@@ -263,7 +263,7 @@ const Products: React.FC = () => {
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-2 w-full lg:w-auto justify-center"
           >
             <Plus className="w-4 h-4" />
             Tambah Produk
@@ -284,82 +284,83 @@ const Products: React.FC = () => {
             />
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Produk</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kategori</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Harga Dasar</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Harga Jual</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stok</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50/30 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
-                        {product.imageUrl ? (
-                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        ) : (
-                          <Package className="w-5 h-5 text-gray-300" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">{product.name}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {product.colors?.map((color, idx) => (
-                            <span key={idx} className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded border border-gray-200">
-                              {color}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-[11px] text-gray-400 truncate max-w-[150px] mt-1">{product.description || 'Tidak ada deskripsi'}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-[10px] font-bold px-2 py-1 bg-primary/10 text-primary rounded uppercase tracking-wider">
-                      {product.category || 'Umum'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-500">
-                    Rp {(product.basePrice || product.price).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                    Rp {(product.sellingPrice || product.price).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className={cn("w-2 h-2 rounded-full", product.stock < 10 ? "bg-warning" : "bg-success")} />
-                      <span className={cn("text-sm font-bold", product.stock < 10 ? "text-warning" : "text-gray-900")}>
-                        {product.stock}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => handleOpenModal(product)}
-                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(product.id)}
-                        className="p-2 text-gray-400 hover:text-danger hover:bg-danger/5 rounded-lg transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+        <div className="overflow-x-auto -mx-4 lg:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Produk</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Kategori</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Harga Dasar</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Harga Jual</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Stok</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50/30 transition-colors group">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
+                          {product.imageUrl ? (
+                            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          ) : (
+                            <Package className="w-5 h-5 text-gray-300" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">{product.name}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {product.colors?.map((color, idx) => (
+                              <span key={idx} className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded border border-gray-200">
+                                {color}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-[10px] font-bold px-2 py-1 bg-primary/10 text-primary rounded uppercase tracking-wider">
+                        {product.category || 'Umum'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-500 whitespace-nowrap">
+                      Rp {(product.basePrice || product.price).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
+                      Rp {(product.sellingPrice || product.price).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("w-2 h-2 rounded-full", product.stock < 10 ? "bg-warning" : "bg-success")} />
+                        <span className={cn("text-sm font-bold", product.stock < 10 ? "text-warning" : "text-gray-900")}>
+                          {product.stock}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleOpenModal(product)}
+                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(product.id)}
+                          className="p-2 text-gray-400 hover:text-danger hover:bg-danger/5 rounded-lg transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {filteredProducts.length === 0 && (
             <div className="text-center py-20">
               <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />

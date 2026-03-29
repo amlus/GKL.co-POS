@@ -78,79 +78,83 @@ const Stock: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Manajemen Stok</h1>
-        <p className="text-gray-500 mt-1">Pantau tingkat inventaris dan sesuaikan stok secara manual.</p>
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Manajemen Stok</h1>
+          <p className="text-gray-500 mt-1 text-sm lg:text-base">Pantau tingkat inventaris dan sesuaikan stok secara manual.</p>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Inventory List */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="relative max-w-md">
+          <div className="relative w-full lg:max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Cari produk..."
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none"
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-primary outline-none text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
           <div className="card">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/50 border-b border-gray-100">
-                    <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Produk</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stok Saat Ini</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                            {product.imageUrl ? (
-                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-lg" referrerPolicy="no-referrer" />
-                            ) : (
-                              <Package className="w-5 h-5 text-gray-300" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-bold text-gray-900 text-sm">{product.name}</p>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{product.category || 'Umum'}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-bold text-gray-900">
-                        {product.stock}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={cn(
-                          "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider",
-                          product.stock === 0 ? "bg-danger/10 text-danger" :
-                          product.stock < 10 ? "bg-warning/10 text-warning" :
-                          "bg-success/10 text-success"
-                        )}>
-                          {product.stock === 0 ? 'Stok Habis' : product.stock < 10 ? 'Stok Menipis' : 'Tersedia'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => setSelectedProduct(product)}
-                          className="text-xs font-bold text-primary hover:underline"
-                        >
-                          Sesuaikan Stok
-                        </button>
-                      </td>
+            <div className="overflow-x-auto -mx-4 lg:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/50 border-b border-gray-100">
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Produk</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Stok Saat Ini</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {filteredProducts.map((product) => (
+                      <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                              {product.imageUrl ? (
+                                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover rounded-lg" referrerPolicy="no-referrer" />
+                              ) : (
+                                <Package className="w-5 h-5 text-gray-300" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm">{product.name}</p>
+                              <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{product.category || 'Umum'}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
+                          {product.stock}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={cn(
+                            "text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider",
+                            product.stock === 0 ? "bg-danger/10 text-danger" :
+                            product.stock < 10 ? "bg-warning/10 text-warning" :
+                            "bg-success/10 text-success"
+                          )}>
+                            {product.stock === 0 ? 'Stok Habis' : product.stock < 10 ? 'Stok Menipis' : 'Tersedia'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <button 
+                            onClick={() => setSelectedProduct(product)}
+                            className="text-xs font-bold text-primary hover:underline"
+                          >
+                            Sesuaikan Stok
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
