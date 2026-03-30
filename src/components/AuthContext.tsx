@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, Timestamp, FirebaseUser, googleProvider, signInWithPopup, signOut, query, where, getDocs, collection, updateDoc } from '../firebase';
+import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, Timestamp, FirebaseUser, googleProvider, signInWithPopup, signOut, query, where, getDocs, collection, updateDoc, signInWithEmailAndPassword } from '../firebase';
 import { UserProfile, UserRole } from '../types';
 
 interface AuthContextType {
@@ -7,6 +7,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   login: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
 }
@@ -22,7 +23,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        // Try to find by UID first
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         if (userDoc.exists()) {
           setProfile(userDoc.data() as UserProfile);
@@ -32,17 +32,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const querySnapshot = await getDocs(q);
           
           if (!querySnapshot.empty) {
-            // Found a pre-created account, update it with UID
             const existingDoc = querySnapshot.docs[0];
             const profileData = existingDoc.data() as UserProfile;
             const updatedProfile = { ...profileData, uid: firebaseUser.uid };
-            
-            // If the doc ID was not the UID, we should probably migrate it or just update it
-            // For simplicity, we'll update the existing doc
             await updateDoc(doc(db, 'users', existingDoc.id), { uid: firebaseUser.uid });
             setProfile(updatedProfile);
           } else {
-            // Create a default profile for new users
             const newProfile: UserProfile = {
               uid: firebaseUser.uid,
               name: firebaseUser.displayName || 'User',
@@ -71,6 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithEmail = async (email: string, password: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error('Login with email error:', error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -82,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAdmin = profile?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, profile, loading, login, loginWithEmail, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

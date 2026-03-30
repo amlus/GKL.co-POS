@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, handleFirestoreError, OperationType } from '../firebase';
 import { Product } from '../types';
-import { Plus, Search, Edit2, Trash2, Package, X, Save, Image as ImageIcon, Download, Upload, FileSpreadsheet, Barcode as BarcodeIcon, Printer, RefreshCw, CheckSquare, Square, Settings2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, X, Save, Image as ImageIcon, Download, Upload, FileSpreadsheet, Barcode as BarcodeIcon, Printer, RefreshCw, CheckSquare, Square, Settings2, Camera, AlertTriangle } from 'lucide-react';
 import Barcode from 'react-barcode';
 import { QRCodeSVG } from 'qrcode.react';
 import { clsx, type ClassValue } from 'clsx';
@@ -33,6 +33,14 @@ const Products: React.FC = () => {
 
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [bulkFormData, setBulkFormData] = useState({
     category: '',
     priceAdjustment: 0,
@@ -84,6 +92,53 @@ const Products: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const startCamera = async (mode: 'user' | 'environment' = 'environment') => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: mode } 
+      });
+      setStream(mediaStream);
+      setFacingMode(mode);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+      setIsCameraOpen(true);
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      alert("Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan.");
+    }
+  };
+
+  const toggleCamera = () => {
+    const newMode = facingMode === 'user' ? 'environment' : 'user';
+    startCamera(newMode);
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCameraOpen(false);
+  };
+
+  const captureImage = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext('2d');
+      if (context) {
+        canvasRef.current.width = videoRef.current.videoWidth;
+        canvasRef.current.height = videoRef.current.videoHeight;
+        context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+        const imageData = canvasRef.current.toDataURL('image/jpeg', 0.7);
+        setFormData({ ...formData, imageUrl: imageData });
+        stopCamera();
+      }
+    }
+  };
+
   const generateBarcode = () => {
     const timestamp = Date.now().toString();
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
@@ -115,24 +170,30 @@ const Products: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    try {
-      await deleteDoc(doc(db, 'products', id));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, 'products');
-    }
+  const handleDelete = (product: Product) => {
+    setProductToDelete(product);
+    setIsBulkDelete(false);
+    setIsDeleteModalOpen(true);
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedProducts.length === 0) return;
-    if (!window.confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) return;
-    
+    setIsBulkDelete(true);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      for (const id of selectedProducts) {
-        await deleteDoc(doc(db, 'products', id));
+      if (isBulkDelete) {
+        for (const id of selectedProducts) {
+          await deleteDoc(doc(db, 'products', id));
+        }
+        setSelectedProducts([]);
+      } else if (productToDelete) {
+        await deleteDoc(doc(db, 'products', productToDelete.id));
       }
-      setSelectedProducts([]);
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, 'products');
     }
@@ -626,7 +687,7 @@ const Products: React.FC = () => {
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => handleDelete(product)}
                           className="p-2 text-gray-400 dark:text-gray-600 hover:text-danger hover:bg-danger/5 rounded-lg transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -646,6 +707,81 @@ const Products: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-dark/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+          <div className="bg-white dark:bg-dark w-full max-w-sm rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-danger/10 text-danger rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Konfirmasi Hapus</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                {isBulkDelete 
+                  ? `Apakah Anda yakin ingin menghapus ${selectedProducts.length} produk yang dipilih? Tindakan ini tidak dapat dibatalkan.`
+                  : `Apakah Anda yakin ingin menghapus produk "${productToDelete?.name}"? Tindakan ini tidak dapat dibatalkan.`
+                }
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-dark/50 text-gray-600 dark:text-gray-400 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-gray-200 dark:hover:bg-dark transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-2 bg-danger text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-danger/90 transition-all shadow-lg shadow-danger/20"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Camera Modal */}
+      {isCameraOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center z-[60] p-4">
+          <div className="relative w-full max-w-lg bg-dark rounded-2xl overflow-hidden shadow-2xl">
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              className="w-full h-auto bg-black"
+            />
+            <canvas ref={canvasRef} className="hidden" />
+            
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-6 px-6">
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <button
+                type="button"
+                onClick={captureImage}
+                className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-primary shadow-xl hover:scale-110 transition-all active:scale-95"
+              >
+                <div className="w-12 h-12 rounded-full border-4 border-primary/20" />
+              </button>
+              <button
+                type="button"
+                onClick={toggleCamera}
+                className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-all"
+                title="Ganti Kamera"
+              >
+                <RefreshCw className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          <p className="mt-6 text-white/60 text-sm font-medium">Posisikan produk di tengah layar</p>
+        </div>
+      )}
 
       {/* Product Modal */}
       {isModalOpen && (
@@ -735,15 +871,39 @@ const Products: React.FC = () => {
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">URL Gambar</label>
-                  <div className="relative">
-                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <input
-                      type="url"
-                      className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input
+                        type="url"
+                        placeholder="https://example.com/image.jpg"
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
+                        value={formData.imageUrl}
+                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={startCamera}
+                      className="px-3 py-2 bg-gray-100 dark:bg-dark/50 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-dark transition-colors flex items-center gap-2 text-xs font-bold"
+                      title="Ambil Foto"
+                    >
+                      <Camera className="w-4 h-4" />
+                      Kamera
+                    </button>
                   </div>
+                  {formData.imageUrl && formData.imageUrl.startsWith('data:image') && (
+                    <div className="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-gray-100 dark:border-white/5">
+                      <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <button 
+                        type="button"
+                        onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                        className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-bl-lg"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Deskripsi</label>

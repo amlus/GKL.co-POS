@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, handleFirestoreError, OperationType } from '../firebase';
+import { db, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, handleFirestoreError, OperationType, secondaryAuth, createUserWithEmailAndPassword, setDoc } from '../firebase';
 import { UserProfile, UserRole, MembershipTier } from '../types';
-import { Plus, Search, Edit2, Trash2, User, X, Save, Shield, UserCircle, Star, Award, Zap } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, User, X, Save, Shield, UserCircle, Star, Award, Zap, Key } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -13,10 +13,12 @@ const Users: React.FC = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'cashier' as UserRole
   });
 
@@ -57,34 +59,60 @@ const Users: React.FC = () => {
       setFormData({
         name: user.name,
         email: user.email,
+        password: '', // Don't show password for editing
         role: user.role
       });
     } else {
       setEditingUser(null);
-      setFormData({ name: '', email: '', role: 'cashier' });
+      setFormData({ name: '', email: '', password: '', role: 'cashier' });
     }
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
-      const dataToSave = {
-        ...formData,
-        // If it's a new user, UID will be empty until they log in
-        uid: editingUser?.uid || '',
-        createdAt: editingUser?.createdAt || Timestamp.now(),
-        updatedAt: Timestamp.now()
-      };
-
       if (editingUser) {
+        const dataToSave = {
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          updatedAt: Timestamp.now()
+        };
         await updateDoc(doc(db, 'users', (editingUser as any).id), dataToSave);
       } else {
-        await addDoc(collection(db, 'users'), dataToSave);
+        // Create user in Firebase Auth using secondary instance
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
+        const newUser = userCredential.user;
+
+        // Create user profile in Firestore
+        const newProfile: UserProfile = {
+          uid: newUser.uid,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        };
+
+        await setDoc(doc(db, 'users', newUser.uid), newProfile);
+        
+        // Sign out from secondary app to keep it clean
+        await secondaryAuth.signOut();
       }
       setIsModalOpen(false);
-    } catch (error) {
-      handleFirestoreError(error, editingUser ? OperationType.UPDATE : OperationType.CREATE, 'users');
+    } catch (error: any) {
+      console.error('Error creating/updating user:', error);
+      if (error.code === 'auth/operation-not-allowed') {
+        alert('Fitur Login Email belum diaktifkan di Firebase Console. Silakan aktifkan provider "Email/Password" di menu Authentication.');
+      } else if (error.code === 'auth/network-request-failed') {
+        alert('Koneksi internet terganggu atau diblokir. Silakan periksa koneksi Anda.');
+      } else {
+        alert(error.message || 'Terjadi kesalahan saat menyimpan akun.');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -107,7 +135,7 @@ const Users: React.FC = () => {
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Manajemen Akun</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm lg:text-base">Kelola akses admin dan kasir secara manual.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm lg:text-base">Buat dan kelola akun admin serta kasir secara mandiri.</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
@@ -239,7 +267,7 @@ const Users: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Email (Google Account)</label>
+                  <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Email</label>
                   <input
                     required
                     type="email"
@@ -248,6 +276,23 @@ const Users: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
+                {!editingUser && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Password</label>
+                    <div className="relative">
+                      <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input
+                        required
+                        type="password"
+                        minLength={6}
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-dark/50 border border-gray-100 dark:border-white/5 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 outline-none text-gray-900 dark:text-white"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        placeholder="Min. 6 karakter"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Peran</label>
                   <div className="grid grid-cols-3 gap-2">
@@ -285,10 +330,11 @@ const Users: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 text-sm"
+                  disabled={isSubmitting}
+                  className="flex-1 px-6 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  {editingUser ? 'Perbarui Akun' : 'Simpan Akun'}
+                  {isSubmitting ? 'Memproses...' : (editingUser ? 'Perbarui Akun' : 'Simpan Akun')}
                 </button>
               </div>
             </form>

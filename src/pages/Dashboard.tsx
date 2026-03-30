@@ -95,14 +95,14 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.name} className="card overflow-hidden">
+          <div key={stat.name} className="stat-card">
             <div className="p-6 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center shadow-lg shadow-gray-200 dark:shadow-none`}>
+              <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center shadow-lg shadow-primary/20`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">{stat.name}</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{stat.value}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">{stat.name}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-0.5">{stat.value}</p>
               </div>
             </div>
           </div>

@@ -19,7 +19,7 @@
 
 @layer base {
   body {
-    @apply bg-background text-gray-700 font-sans transition-colors duration-300;
+    @apply bg-[#f4f7fa] text-gray-700 font-sans transition-colors duration-300;
   }
 
   .dark body {
@@ -28,11 +28,11 @@
 }
 
 .pc-sidebar {
-  @apply bg-gradient-to-b from-[#3f4d67] to-[#2c3e50] text-white w-64 fixed h-full transition-all duration-300 z-50 shadow-xl;
+  @apply bg-[#3f4d67] bg-gradient-to-b from-[#3f4d67] to-[#2c3e50] text-white w-64 fixed h-full transition-all duration-300 z-50 shadow-xl;
 }
 
 .dark .pc-sidebar {
-  @apply bg-gradient-to-b from-[#111317] to-[#0a0b0d];
+  @apply bg-[#111317] bg-gradient-to-b from-[#111317] to-[#0a0b0d];
 }
 
 @media (max-width: 1024px) {
@@ -57,11 +57,11 @@
 }
 
 .pc-header {
-  @apply bg-white dark:bg-[#1a1c23] h-16 fixed right-0 top-0 left-0 lg:left-64 flex items-center px-4 lg:px-6 shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] z-40 transition-all duration-300 border-b border-gray-100 dark:border-white/5;
+  @apply bg-white dark:bg-[#1a1c23] h-[70px] fixed right-0 top-0 left-0 lg:left-64 flex items-center px-4 lg:px-6 shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] z-40 transition-all duration-300 border-b border-gray-100 dark:border-white/5;
 }
 
 .pc-container {
-  @apply pt-20 pl-0 lg:pl-64 transition-all duration-300 min-h-screen bg-[#f4f7fa] dark:bg-[#111317];
+  @apply pt-[90px] pl-0 lg:pl-64 transition-all duration-300 min-h-screen bg-[#f4f7fa] dark:bg-[#111317];
 }
 
 .card {
@@ -69,7 +69,7 @@
 }
 
 .card-header {
-  @apply px-6 py-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[#1a1c23];
+  @apply px-6 py-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/30 dark:bg-white/[0.02];
 }
 
 .card-header h5, .card-header h2 {
@@ -81,15 +81,24 @@
 }
 
 .btn-primary {
-  @apply bg-gradient-to-r from-primary to-secondary text-white px-5 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-all shadow-lg shadow-primary/25 border-none cursor-pointer;
+  @apply bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-all shadow-lg shadow-primary/25 border-none cursor-pointer active:scale-95;
 }
 
 .btn-outline {
-  @apply border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 px-5 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-gray-50 dark:hover:bg-white/5 transition-all;
+  @apply border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-95;
 }
 
 .badge-primary {
   @apply bg-gradient-to-r from-primary to-secondary text-white px-2 py-1 rounded text-[10px] font-bold uppercase;
+}
+
+.stat-card {
+  @apply bg-white dark:bg-[#1a1c23] rounded-xl shadow-[0_1px_20px_0_rgba(69,90,100,0.08)] border-none mb-6 overflow-hidden transition-all duration-300 hover:shadow-[0_10px_30px_0_rgba(69,90,100,0.12)] relative;
+}
+
+.stat-card::after {
+  content: '';
+  @apply absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl;
 }
 
 @media print {
